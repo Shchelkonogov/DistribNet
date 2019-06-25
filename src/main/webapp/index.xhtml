@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <title>Тест</title>
+    <style type="text/css">
+        .ui-diagram-element {
+            width:14em;
+            height:4em;
+            line-height:4em;
+            text-align: center;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.8);
+            border-radius: 4px;
+            border: 1px solid #646D7E;
+            background-color: #646D7E;
+            color: #ffffff;
+        }
+
+        .ui-diagram-element:hover {
+            background-color: #828B9C;
+        }
+
+        .flow-label {
+            color: #464F60;
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            transform: translate(-50%, -110%) !important;
+            white-space: nowrap;
+        }
+
+        .start-node {
+            width: 5em;
+            color: black;
+            background-color: white !important;
+            box-shadow: none;
+            border: none;
+        }
+
+        span[class ^= 'left'] {
+            top: 0;
+            left: 0;
+        }
+
+        span[class ^= 'right'] {
+            top: 0;
+            right: 0;
+        }
+
+        #{graph.styles}
+    </style>
+</h:head>
+<h:body>
+    <table style="width: 92em; border: 1px solid; border-radius: 5px" cellspacing="0" cellpadding="0">
+        <tr>
+            <td style="width: 55em;">
+                <p:diagram id="diaLeft" value="#{graph.diagramModelLeft}" style="height: 600px; overflow: hidden;" var="el">
+                    <f:facet name="element">
+                        <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
+                        <p:repeat id="repeat" value="#{el.values}" var="value">
+                            <h:outputText id="textLeftGraph"
+                                          styleClass="#{el.className}#{el.size}"
+                                          value="#{value}"
+                                          style="position: absolute;"/>
+                        </p:repeat>
+                    </f:facet>
+                </p:diagram>
+            </td>
+            <td style="width: 37em">
+                <p:diagram id="diaRight" value="#{graph.diagramModelRight}" style="height: 600px;" var="el">
+                    <f:facet name="element">
+                        <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
+                        <p:repeat id="repeat" value="#{el.values}" var="value">
+                            <h:outputText id="textRightGraph"
+                                          styleClass="#{el.className}#{el.size}"
+                                          value="#{value}"
+                                          style="position: absolute;"/>
+                        </p:repeat>
+                    </f:facet>
+                </p:diagram>
+            </td>
+        </tr>
+    </table>
+<!--    <p:repeat value="#{graph.tooltips}" var="tooltip">-->
+<!--        <p:tooltip for="diaLeft.diaLeft-idInitProd" value="#{tooltip.value}" position="top"/>-->
+<!--    </p:repeat>-->
+    #{graph.error}
+</h:body>
+</html>
