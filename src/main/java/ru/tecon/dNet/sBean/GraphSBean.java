@@ -62,6 +62,7 @@ public class GraphSBean {
      * @throws GraphLoadException если запросы вернули не корректные данные
      */
     public GraphElement loadInitData(int objectId) throws GraphLoadException {
+        log.info("loadInitData start");
         GraphElement init = null;
         try (Connection connect = ds.getConnection();
              PreparedStatement stmAlter = connect.prepareStatement(SQL_ALTER);
@@ -83,13 +84,15 @@ public class GraphSBean {
                 init.addConnect(connector);
 
                 if (init.getDate() == null) {
+                    log.warning("loadInitData Источник ни разу не выходил на связь!");
                     throw new GraphLoadException("Источник ни разу не выходил на связь!");
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.warning("loadInitData "+ e.getMessage());
         }
 
+        log.info("loadInitData end");
         return init;
     }
 
@@ -101,6 +104,7 @@ public class GraphSBean {
      * @throws GraphLoadException если запросы вернули не корректные данные
      */
     public GraphElement loadGraph(int objectId, String date) throws GraphLoadException {
+        log.info("loadGraph start");
         GraphElement producer = null;
         try (Connection connect = ds.getConnection();
              PreparedStatement stm = connect.prepareStatement(SQL_PRODUCER)) {
@@ -110,13 +114,15 @@ public class GraphSBean {
                 producer = new GraphElement(objectId, res.getString(1), date);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.warning("loadGraph " + e.getMessage());
         }
 
         // Загрузка данных присоединенных потребителей
         if (producer != null) {
             loadConsumers(producer);
         }
+
+        log.info("loadGraph end");
         return producer;
     }
 
@@ -126,6 +132,7 @@ public class GraphSBean {
      * @throws GraphLoadException если запросы вернули не корректные данные
      */
     private void loadConsumers(GraphElement producer) throws GraphLoadException {
+        log.info("loadConsumers start");
         try (Connection connect = ds.getConnection();
              PreparedStatement stm = connect.prepareStatement(SQL_CONSUMERS)) {
             stm.setInt(1, producer.getObjectId());
@@ -134,15 +141,18 @@ public class GraphSBean {
                 producer.addChildren(new GraphElement(res.getInt(1), res.getString(2)));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.warning("loadConsumers " + e.getMessage());
         }
 
         if (producer.getChildren() == null) {
+            log.warning("loadConsumers У источника нету потребителей!");
             throw new GraphLoadException("У источника нету потребителей!");
         }
 
         // Загрузка данных по связам для каждого объекта мнемосхемы
         loadConnections(producer);
+
+        log.info("loadConsumers end");
     }
 
     /**
@@ -150,6 +160,7 @@ public class GraphSBean {
      * @param producer данные мнемосхемы
      */
     private void loadConnections(GraphElement producer) {
+        log.info("loadConnections start");
         try (Connection connect = ds.getConnection();
              PreparedStatement stmAlter = connect.prepareStatement(SQL_ALTER);
              PreparedStatement stm = connect.prepareStatement(SQL_CONNECTIONS)) {
@@ -160,8 +171,9 @@ public class GraphSBean {
                 doConnections(stm, el, producer.getDate());
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.warning("loadConnections " + e.getMessage());
         }
+        log.info("loadConnections end");
     }
 
     private void doConnections(PreparedStatement stm, GraphElement producer, String date) throws SQLException {
