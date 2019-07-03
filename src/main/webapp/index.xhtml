@@ -5,61 +5,21 @@
       xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
       xmlns:f="http://xmlns.jcp.org/jsf/core"
-      xmlns:p="http://primefaces.org/ui">
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:pe="http://primefaces.org/ui/extensions">
 <h:head>
     <title>Тест</title>
-    <style type="text/css">
-        .ui-diagram-element {
-            width:14em;
-            height:4em;
-            line-height:4em;
-            text-align: center;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.8);
-            border-radius: 4px;
-            border: 1px solid #646D7E;
-            background-color: #646D7E;
-            color: #ffffff;
-        }
-
-        .ui-diagram-element:hover {
-            background-color: #828B9C;
-        }
-
-        .flow-label {
-            color: #464F60;
-            font-size: 15px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            transform: translate(-50%, -110%) !important;
-            white-space: nowrap;
-        }
-
-        .start-node {
-            width: 5em;
-            color: black;
-            background-color: white !important;
-            box-shadow: none;
-            border: none;
-        }
-
-        span[class ^= 'left'] {
-            top: 0;
-            left: 0;
-        }
-
-        span[class ^= 'right'] {
-            top: 0;
-            right: 0;
-        }
-
-        #{graph.styles}
-    </style>
+    <h:outputStylesheet name="style.css" library="css"/>
+    <style type="text/css">#{graph.styles}</style>
 </h:head>
 <h:body>
-    <table style="width: 92em; border: 1px solid; border-radius: 5px" cellspacing="0" cellpadding="0">
+    <table class="table-style" cellspacing="0" cellpadding="0">
         <tr>
-            <td style="width: 55em;">
-                <p:diagram id="diaLeft" value="#{graph.diagramModelLeft}" style="height: 600px; overflow: hidden;" var="el">
+            <td valign="top" style="width: 48.1em; min-width: 48.1em">
+                <p:diagram id="diaLeft"
+                           value="#{graph.diagramModelLeft}"
+                           style="min-height: 400px; height: calc(100% - 45px); overflow: hidden;"
+                           var="el">
                     <f:facet name="element">
                         <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
                         <p:repeat id="repeat" value="#{el.values}" var="value">
@@ -70,9 +30,36 @@
                         </p:repeat>
                     </f:facet>
                 </p:diagram>
+
+                <p:repeat value="#{graph.initList}" var="el" varStatus="status">
+                    <div class="ui-widget #{el.color} init#{status.index}">
+                        #{el.value}
+                    </div>
+                </p:repeat>
+
+                <div style="position: absolute; top: 48px; left: 358px; transform: translate(-50%, 0px); background: #{graph.temperatureColor}"
+                     class="ui-widget">
+                    #{graph.temperature}
+                </div>
+
+                <p:selectBooleanButton styleClass="boolean-button-bar"
+                                       value="#{graph.co}"
+                                       onLabel="ЦО" offLabel="ЦО"
+                                       onIcon="pi pi-check" offIcon="pi pi-times"/>
+                <p:selectBooleanButton styleClass="boolean-button-bar"
+                                       value="#{graph.gvs}"
+                                       onLabel="ГВС" offLabel="ГВС"
+                                       onIcon="pi pi-check" offIcon="pi pi-times"/>
+                <p:selectBooleanButton styleClass="boolean-button-bar"
+                                       value="#{graph.vent}"
+                                       onLabel="Вент" offLabel="Вент"
+                                       onIcon="pi pi-check" offIcon="pi pi-times"/>
             </td>
-            <td style="width: 37em">
-                <p:diagram id="diaRight" value="#{graph.diagramModelRight}" style="height: 600px;" var="el">
+            <td valign="top" style="min-width: 35em">
+                <p:diagram id="diaRight"
+                           value="#{graph.diagramModelRight}"
+                           style="min-height: 500px; height: 100%"
+                           var="el">
                     <f:facet name="element">
                         <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
                         <p:repeat id="repeat" value="#{el.values}" var="value">
@@ -86,9 +73,15 @@
             </td>
         </tr>
     </table>
-<!--    <p:repeat value="#{graph.tooltips}" var="tooltip">-->
-<!--        <p:tooltip for="diaLeft.diaLeft-idInitProd" value="#{tooltip.value}" position="top"/>-->
-<!--    </p:repeat>-->
-    #{graph.error}
+
+    <p:repeat value="#{graph.tooltips}" var="tooltip">
+        <pe:tooltip for="@(##{tooltip.id})" value="#{tooltip.value}"
+                    mouseTracking="true" myPosition="top left" adjustX="10" adjustY="10"
+                    styleClass="qtip qtip-dark qtip-rounded qtip-shadow"/>
+    </p:repeat>
+
+    <div style="position: absolute; top: 20px; left: 50%">
+        #{graph.error}
+    </div>
 </h:body>
 </html>
