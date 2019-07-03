@@ -9,18 +9,27 @@ public class GraphElement implements Serializable {
 
     private int objectId;
     private String name;
+    private String tooltip;
     private List<Connector> connectors = new ArrayList<>();
     private List<GraphElement> children;
     private String date;
 
     public GraphElement(int objectId, String name) {
         this.objectId = objectId;
-        this.name = name;
+        if (name != null) {
+            this.tooltip = name;
+            this.name = name;
+            if (name.length() > 25) {
+                while (this.name.length() > 25) {
+                    this.name = this.name.substring(0, this.name.lastIndexOf(' '));
+                }
+                this.name += "...";
+            }
+        }
     }
 
     public GraphElement(int objectId, String name, String date) {
-        this.objectId = objectId;
-        this.name = name;
+        this(objectId, name);
         this.date = date;
     }
 
@@ -36,16 +45,16 @@ public class GraphElement implements Serializable {
         return name;
     }
 
+    public String getTooltip() {
+        return tooltip;
+    }
+
     public List<Connector> getConnectors() {
         return connectors;
     }
 
     public List<GraphElement> getChildren() {
         return children;
-    }
-
-    public void setChildren(List<GraphElement> children) {
-        this.children = children;
     }
 
     public void addChildren(GraphElement children) {
@@ -65,6 +74,7 @@ public class GraphElement implements Serializable {
         return new StringJoiner(", ", GraphElement.class.getSimpleName() + "[", "]")
                 .add("objectId=" + objectId)
                 .add("name='" + name + "'")
+                .add("tooltip='" + tooltip + "'")
                 .add("connectors=" + connectors)
                 .add("children=" + children)
                 .add("date='" + date + "'")
