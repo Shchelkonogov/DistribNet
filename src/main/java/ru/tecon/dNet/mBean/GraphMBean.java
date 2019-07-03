@@ -3,6 +3,7 @@ package ru.tecon.dNet.mBean;
 import org.primefaces.model.diagram.Connection;
 import org.primefaces.model.diagram.DefaultDiagramModel;
 import org.primefaces.model.diagram.Element;
+import org.primefaces.model.diagram.connector.FlowChartConnector;
 import org.primefaces.model.diagram.connector.StraightConnector;
 import org.primefaces.model.diagram.endpoint.BlankEndPoint;
 import org.primefaces.model.diagram.endpoint.EndPoint;
@@ -10,10 +11,7 @@ import org.primefaces.model.diagram.endpoint.EndPointAnchor;
 import org.primefaces.model.diagram.overlay.ArrowOverlay;
 import org.primefaces.model.diagram.overlay.LabelOverlay;
 import ru.tecon.dNet.exception.GraphLoadException;
-import ru.tecon.dNet.model.Connector;
-import ru.tecon.dNet.model.GraphElement;
-import ru.tecon.dNet.model.DiagramElement;
-import ru.tecon.dNet.model.Tooltip;
+import ru.tecon.dNet.model.*;
 import ru.tecon.dNet.sBean.GraphSBean;
 
 import javax.annotation.PostConstruct;
@@ -22,6 +20,7 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.RequestScoped;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -32,25 +31,43 @@ public class GraphMBean {
 
     private static Logger log = Logger.getLogger(GraphMBean.class.getName());
 
+    @ManagedProperty("#{param.object}")
+    private int object;
+
+    //Высота элементы мнемосхемы в пикселях
+    private static final int BLOCK_HEIGHT = 100;
+
+    //Модели для мнемосхемы
     private DefaultDiagramModel diagramModelLeft;
     private DefaultDiagramModel diagramModelRight;
 
     private StringBuilder styles = new StringBuilder();
-
-    private String error;
+    private List<String> checkStyleList = new ArrayList<>();
 
     private List<Tooltip> tooltips = new ArrayList<>();
 
-    @ManagedProperty("#{param.object}")
-    private int object;
+    //Коэффициенты источника
+    private ConnectorValue[] producerIndex;
 
-    private List<String> counts = new ArrayList<>();
+    private String temperature;
+    private String temperatureColor;
+
+    private boolean co = true;
+    private boolean gvs = true;
+    private boolean vent = true;
+
+    private String error;
 
     @EJB
     private GraphSBean bean;
 
     @PostConstruct
     public void init() {
+        // TODO проверить работу ошибки и поместить ее в центр окна
+//        if (true) {
+//            error = "asdasdasd";
+//            return;
+//        }
         //Объявляем граф
         diagramModelLeft = new DefaultDiagramModel();
         diagramModelLeft.setMaxConnections(-1);
@@ -67,7 +84,7 @@ public class GraphMBean {
         GraphElement init;
         GraphElement producer;
         try {
-//            20867 7302
+            //TODO объекты которые проверяю: 20867, 7302
             init = bean.loadInitData(object);
             producer = bean.loadGraph(object, init.getDate());
         } catch (GraphLoadException e) {
@@ -83,65 +100,77 @@ public class GraphMBean {
             return;
         }
 
-        //Добавляем стили для надписей между стрелками
-        addStyle(init, "right", "Left");
-        addStyle(producer, "right", "Left");
-        for (GraphElement el: producer.getChildren()) {
-            addStyle(el, "left", "Right");
+        //Задаем значение для температуры и ее цвет
+        temperature = init.getConnectors().get(0).getName().split(" ")[1];
+        temperatureColor = init.getConnectors().get(0).getName().split(" ")[2];
+
+        //Задаем значения для коэффикиентов источнка и задаем их стили
+        List<String> values = new ArrayList<>(Arrays.asList(init.getConnectors().get(0).getCenter()[0].getValue().split(" ")));
+        List<String> colors = new ArrayList<>(Arrays.asList(init.getConnectors().get(0).getCenter()[0].getColor().split(" ")));
+        producerIndex = new ConnectorValue[Math.min(values.size(), colors.size())];
+        for (int i = 0; i < producerIndex.length; i++) {
+            producerIndex[i] = new ConnectorValue(values.get(i), colors.get(i));
+
+            if (!checkStyleList.contains(producerIndex[i].getColor())) {
+                checkStyleList.add(producerIndex[i].getColor());
+
+                styles.append('.')
+                        .append(producerIndex[i].getColor())
+                        .append("{background: ")
+                        .append(producerIndex[i].getColor())
+                        .append("}");
+            }
         }
-
-        //Созадем связку элемент соединитель элемент для входных параметров
-        Element initLeft = new Element(
-                new DiagramElement(init.getName(),
-                        init.getConnectors().stream().map(Connector::getName).collect(Collectors.toList()),
-                        "right"),
-                "0em", "0px");
-        initLeft.setStyleClass("start-node");
-        initLeft.setDraggable(false);
-        initLeft.setId("idInitProd");
-
-        Element initRight = new Element(null, "20em", "0em");
-        initRight.setDraggable(false);
-        initRight.setId("idInitInvisible");
-
-        diagramModelLeft.addElement(initLeft);
-        diagramModelLeft.addElement(initRight);
-
-        styles.append("#diaLeft-idInitProd, #diaLeft-idInitInvisible")
-                .append("{height: ")
-                .append(90 * init.getConnectors().size())
-                .append("px;} ")
-                .append("#diaLeft-idInitInvisible {visibility: hidden; width: 1em;}");
-
-        initConnections(initLeft, initRight, init, diagramModelLeft);
 
         //Созадем связку элемент соединитель элемент для источника
         Element prodLeft = new Element(
                 new DiagramElement(producer.getName(),
                         producer.getConnectors().stream().map(Connector::getName).collect(Collectors.toList()),
                         "right"),
-                "20em", "0px");
+                "18em", "9em");
         prodLeft.setDraggable(false);
         prodLeft.setId("idProd");
 
-        Element prodRight = new Element(null, "50em", "0em");
+        Element prodRight = new Element(null, "55em", "9em");
         prodRight.setDraggable(false);
         prodRight.setId("idInvisible");
 
         diagramModelLeft.addElement(prodLeft);
         diagramModelLeft.addElement(prodRight);
 
+        addStyle(producer, "right", "Left");
         styles.append("#diaLeft-idProd, #diaLeft-idInvisible")
                 .append("{height: ")
-                .append(90 * producer.getConnectors().size())
+                .append(BLOCK_HEIGHT * producer.getConnectors().size())
                 .append("px;} ")
                 .append("#diaLeft-idInvisible {visibility: hidden; width: 1em;}");
 
         initConnections(prodLeft, prodRight, producer, diagramModelLeft);
-//        tooltips.add(new Tooltip("diaLeft-idProd", producer.getName()));
+        tooltips.add(new Tooltip("diaLeft-idProd", producer.getTooltip()));
+
+        //Создаем элемент и связь для входных данных в источник
+        Element initElement = new Element(
+                new DiagramElement(init.getConnectors().get(0).getName().split(" ")[0], null, null),
+                "1em", "0em");
+        initElement.addEndPoint(new BlankEndPoint(EndPointAnchor.BOTTOM_LEFT));
+        initElement.addEndPoint(new BlankEndPoint(EndPointAnchor.BOTTOM_RIGHT));
+        initElement.setStyleClass("init-node");
+        initElement.setDraggable(false);
+
+        diagramModelLeft.addElement(initElement);
+
+        prodLeft.addEndPoint(new BlankEndPoint(EndPointAnchor.CONTINUOUS_TOP));
+        prodLeft.addEndPoint(new BlankEndPoint(EndPointAnchor.CONTINUOUS_TOP));
+
+        diagramModelLeft.connect(createConnection(initElement.getEndPoints().get(1),
+                prodLeft.getEndPoints().get(prodLeft.getEndPoints().size() - 2),
+                init.getConnectors().get(0).getIn(), false, true));
+        diagramModelLeft.connect(createConnection(initElement.getEndPoints().get(0),
+                prodLeft.getEndPoints().get(prodLeft.getEndPoints().size() - 1),
+                init.getConnectors().get(0).getOut(), true, true));
 
         //Созадем связку элемент соединитель элемент для потребителей
-        int yPos = 0;
+        int yPos = 10;
         for (GraphElement el : producer.getChildren()) {
             Element left = new Element(null, "0em", yPos + "px");
             left.setDraggable(false);
@@ -151,20 +180,21 @@ public class GraphMBean {
                     new DiagramElement(el.getName(),
                             el.getConnectors().stream().map(Connector::getName).collect(Collectors.toList()),
                             "left"),
-                    "17em", yPos + "px");
+                    "24em", yPos + "px");
             right.setDraggable(false);
             right.setId("id" + yPos);
 
             diagramModelRight.addElement(left);
             diagramModelRight.addElement(right);
 
+            addStyle(el, "left", "Right");
             styles.append("#diaRight-id")
                     .append(yPos)
                     .append(", #diaRight-id")
                     .append(yPos)
                     .append("invisible")
                     .append("{height: ")
-                    .append(90 * el.getConnectors().size())
+                    .append(BLOCK_HEIGHT * el.getConnectors().size())
                     .append("px;} ")
                     .append("#diaRight-id")
                     .append(yPos)
@@ -172,13 +202,13 @@ public class GraphMBean {
                     .append("{visibility: hidden; width: 1em;}");
 
             initConnections(left, right, el, diagramModelRight);
-            tooltips.add(new Tooltip("diaRight-id" + yPos, el.getName()));
+            tooltips.add(new Tooltip("diaRight-id" + yPos, el.getTooltip()));
 
-            yPos += 20 + (90 * el.getConnectors().size());
+            yPos += 20 + (BLOCK_HEIGHT * el.getConnectors().size());
         }
 
         //Добавляем объединяющий вертикальный элемент
-        Element leftWrapper = new Element(null, "0em", "0em");
+        Element leftWrapper = new Element(null, "oem", "10px");
         leftWrapper.setDraggable(false);
         leftWrapper.setId("idLeftWrapper");
         leftWrapper.addEndPoint(new BlankEndPoint(EndPointAnchor.TOP));
@@ -192,7 +222,7 @@ public class GraphMBean {
         diagramModelRight.addElement(downWrapper);
 
         styles.append("#diaRight-idLeftWrapper {height: ")
-                .append(yPos - 20)
+                .append(yPos - 30)
                 .append("px; width: 1em; box-shadow: none;}")
                 .append("#diaRight-idDownWrapper{height: 1em; width: 1em; visibility: hidden;}");
     }
@@ -201,23 +231,73 @@ public class GraphMBean {
         for (int i = 0; i < el.getConnectors().size(); i++) {
             left.addEndPoint(new BlankEndPoint(EndPointAnchor.CONTINUOUS_RIGHT));
             left.addEndPoint(new BlankEndPoint(EndPointAnchor.CONTINUOUS_RIGHT));
+            left.addEndPoint(new BlankEndPoint(EndPointAnchor.CONTINUOUS_RIGHT));
 
+            right.addEndPoint(new BlankEndPoint(EndPointAnchor.CONTINUOUS_LEFT));
             right.addEndPoint(new BlankEndPoint(EndPointAnchor.CONTINUOUS_LEFT));
             right.addEndPoint(new BlankEndPoint(EndPointAnchor.CONTINUOUS_LEFT));
 
             model.connect(createConnection(
-                    left.getEndPoints().get(2 * i),
-                    right.getEndPoints().get(2 * i),
-                    el.getConnectors().get(i).getInValue(), false));
+                    left.getEndPoints().get(3 * i),
+                    right.getEndPoints().get(3 * i),
+                    el.getConnectors().get(i).getIn(), false, false));
 
             model.connect(createConnection(
-                    left.getEndPoints().get(2 * i + 1),
-                    right.getEndPoints().get(2 * i + 1),
-                    el.getConnectors().get(i).getOutValue(), true));
+                    left.getEndPoints().get(3 * i + 1),
+                    right.getEndPoints().get(3 * i + 1), el.getConnectors().get(i).getCenter()));
+
+            model.connect(createConnection(
+                    left.getEndPoints().get(3 * i + 2),
+                    right.getEndPoints().get(3 * i + 2),
+                    el.getConnectors().get(i).getOut(), true, false));
         }
     }
 
-    private Connection createConnection(EndPoint from, EndPoint to, String label, boolean isLeft) {
+    /**
+     * Создание соединителя с невидемой линией
+     * @param from начальная точка
+     * @param to конечная точка
+     * @param label данные для отображания
+     * @return элемент связи
+     */
+    private Connection createConnection(EndPoint from, EndPoint to, ConnectorValue[] label) {
+        Connection connect = new Connection(from, to);
+
+        StraightConnector connector = new StraightConnector();
+        connector.setPaintStyle("{strokeStyle:'rgba(100, 100, 100, 0)', lineWidth:0}");
+
+        connect.setConnector(connector);
+
+        if(label != null) {
+            for (int i = 0; i < label.length; i++) {
+                if (label[i] != null) {
+                    connect.getOverlays().add(new LabelOverlay(label[i].getValue(), "flow-label-k" + i + " " + label[i].getColor(), 0.5));
+                    if (!checkStyleList.contains(label[i].getColor())) {
+                        checkStyleList.add(label[i].getColor());
+
+                        styles.append('.')
+                                .append(label[i].getColor())
+                                .append("{background: ")
+                                .append(label[i].getColor())
+                                .append("}");
+                    }
+                }
+            }
+        }
+
+        return connect;
+    }
+
+    /**
+     * Создание соединителя с видимой линией
+     * @param from начальная точка
+     * @param to конечная точка
+     * @param label данные для отображения
+     * @param isLeft положение стрелки (true стрелка слева)
+     * @param isConnector вариант соединителя (true FlowChartConnector)
+     * @return элемент связи
+     */
+    private Connection createConnection(EndPoint from, EndPoint to, ConnectorValue[] label, boolean isLeft, boolean isConnector) {
         Connection conn = new Connection(from, to);
 
         if (isLeft) {
@@ -226,8 +306,28 @@ public class GraphMBean {
             conn.getOverlays().add(new ArrowOverlay(20, 20, 1, 1));
         }
 
+        if (isConnector) {
+            FlowChartConnector connector = new FlowChartConnector();
+            connector.setPaintStyle("{strokeStyle:'#404a4e', lineWidth:3}");
+
+            conn.setConnector(connector);
+        }
+
         if (label != null) {
-            conn.getOverlays().add(new LabelOverlay(label, "flow-label", 0.5));
+            for (int i = 0; i < label.length; i++) {
+                if (label[i] != null) {
+                    conn.getOverlays().add(new LabelOverlay(label[i].getValue(), "flow-label" + i + " " + label[i].getColor(), 0.5));
+                    if (!checkStyleList.contains(label[i].getColor())) {
+                        checkStyleList.add(label[i].getColor());
+
+                        styles.append('.')
+                                .append(label[i].getColor())
+                                .append("{background: ")
+                                .append(label[i].getColor())
+                                .append("}");
+                    }
+                }
+            }
         }
 
         return conn;
@@ -235,12 +335,12 @@ public class GraphMBean {
 
     private void addStyle(GraphElement element, String direction, String graph) {
         int size = element.getConnectors().size();
-        if (!counts.contains(size + direction + graph)) {
-            counts.add(size + direction + graph);
+        if (!checkStyleList.contains(size + direction + graph)) {
+            checkStyleList.add(size + direction + graph);
 
             for (int i = 0; i < size; i++) {
-                double y = (double) (2 * i + 1) * (90 * size + 2) / (size * 2 + 1) - 35.2 +
-                        (double) (90 * size + 2) / (2 * (size * 2 + 1));
+                double y = (double) (2 * i + 1) * (BLOCK_HEIGHT * size + 2) / (size * 2 + 1) - 35.2 +
+                        (double) (BLOCK_HEIGHT * size + 2) / (2 * (size * 2 + 1));
 
                 styles.append("#repeat\\:")
                         .append(i)
@@ -253,6 +353,10 @@ public class GraphMBean {
                         .append(y).append("px;}");
             }
         }
+    }
+
+    public ConnectorValue[] getProducerIndex() {
+        return producerIndex;
     }
 
     public String getError() {
@@ -281,5 +385,37 @@ public class GraphMBean {
 
     public String getStyles() {
         return styles.toString();
+    }
+
+    public String getTemperature() {
+        return temperature;
+    }
+
+    public String getTemperatureColor() {
+        return temperatureColor;
+    }
+
+    public boolean isCo() {
+        return co;
+    }
+
+    public void setCo(boolean co) {
+        this.co = co;
+    }
+
+    public boolean isGvs() {
+        return gvs;
+    }
+
+    public void setGvs(boolean gvs) {
+        this.gvs = gvs;
+    }
+
+    public boolean isVent() {
+        return vent;
+    }
+
+    public void setVent(boolean vent) {
+        this.vent = vent;
     }
 }

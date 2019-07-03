@@ -31,7 +31,7 @@
                     </f:facet>
                 </p:diagram>
 
-                <p:repeat value="#{graph.initList}" var="el" varStatus="status">
+                <p:repeat value="#{graph.producerIndex}" var="el" varStatus="status">
                     <div class="ui-widget #{el.color} init#{status.index}">
                         #{el.value}
                     </div>
