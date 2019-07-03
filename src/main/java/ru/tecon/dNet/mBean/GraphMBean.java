@@ -342,17 +342,22 @@ public class GraphMBean {
                 double y = (double) (2 * i + 1) * (BLOCK_HEIGHT * size + 2) / (size * 2 + 1) - 35.2 +
                         (double) (BLOCK_HEIGHT * size + 2) / (2 * (size * 2 + 1));
 
-                styles.append("#repeat\\:")
-                        .append(i)
-                        .append("\\:text")
+                styles.append(".text")
                         .append(graph)
-                        .append("Graph.")
+                        .append("Graph")
+                        .append(i)
+                        .append(".")
                         .append(direction)
                         .append(size)
                         .append(" {top: ")
-                        .append(y).append("px;}");
+                        .append(y)
+                        .append("px;}");
             }
         }
+    }
+
+    public void changeButton() {
+        System.out.println(isCo() + " " + isGvs() + " " + isVent());
     }
 
     public ConnectorValue[] getProducerIndex() {

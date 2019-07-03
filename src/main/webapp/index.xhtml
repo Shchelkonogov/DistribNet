@@ -22,9 +22,8 @@
                            var="el">
                     <f:facet name="element">
                         <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
-                        <p:repeat id="repeat" value="#{el.values}" var="value">
-                            <h:outputText id="textLeftGraph"
-                                          styleClass="#{el.className}#{el.size}"
+                        <p:repeat value="#{el.values}" var="value" varStatus="status">
+                            <h:outputText styleClass="#{el.className}#{el.size} textLeftGraph#{status.index}"
                                           value="#{value}"
                                           style="position: absolute;"/>
                         </p:repeat>
@@ -45,15 +44,21 @@
                 <p:selectBooleanButton styleClass="boolean-button-bar"
                                        value="#{graph.co}"
                                        onLabel="ЦО" offLabel="ЦО"
-                                       onIcon="pi pi-check" offIcon="pi pi-times"/>
+                                       onIcon="pi pi-check" offIcon="pi pi-times">
+                    <p:ajax listener="#{graph.changeButton}"/>
+                </p:selectBooleanButton>
                 <p:selectBooleanButton styleClass="boolean-button-bar"
                                        value="#{graph.gvs}"
                                        onLabel="ГВС" offLabel="ГВС"
-                                       onIcon="pi pi-check" offIcon="pi pi-times"/>
+                                       onIcon="pi pi-check" offIcon="pi pi-times">
+                    <p:ajax listener="#{graph.changeButton}"/>
+                </p:selectBooleanButton>
                 <p:selectBooleanButton styleClass="boolean-button-bar"
                                        value="#{graph.vent}"
                                        onLabel="Вент" offLabel="Вент"
-                                       onIcon="pi pi-check" offIcon="pi pi-times"/>
+                                       onIcon="pi pi-check" offIcon="pi pi-times">
+                    <p:ajax listener="#{graph.changeButton}"/>
+                </p:selectBooleanButton>
             </td>
             <td valign="top" style="min-width: 35em">
                 <p:diagram id="diaRight"
@@ -62,9 +67,8 @@
                            var="el">
                     <f:facet name="element">
                         <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
-                        <p:repeat id="repeat" value="#{el.values}" var="value">
-                            <h:outputText id="textRightGraph"
-                                          styleClass="#{el.className}#{el.size}"
+                        <p:repeat value="#{el.values}" var="value" varStatus="status">
+                            <h:outputText styleClass="#{el.className}#{el.size} textRightGraph#{status.index}"
                                           value="#{value}"
                                           style="position: absolute;"/>
                         </p:repeat>
