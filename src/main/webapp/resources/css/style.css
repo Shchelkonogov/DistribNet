@@ -1,0 +1,123 @@
+html {
+    height: calc(100% - 20px)
+}
+
+body {
+    height:100%
+}
+
+.ui-diagram-element {
+    width:14em;
+    height:4em;
+    line-height:4em;
+    text-align: center;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.8);
+    border-radius: 4px;
+    border: 1px solid #646D7E;
+    background-color: #646D7E;
+    color: #ffffff;
+}
+
+.ui-diagram-element:hover {
+    background-color: #828B9C;
+}
+
+.init-node {
+    height: 4em;
+    width: 48em;
+    color: black;
+    background-color: white !important;
+    box-shadow: none;
+    border: none;
+}
+
+.flow-label0, .flow-label1, .flow-label2,
+.flow-label-k0, .flow-label-k1, .flow-label-k2,
+.init0, .init1, .init2, .init3, .init4, .init5 {
+    color: #464F60;
+    font-size: 15px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    white-space: nowrap;
+}
+
+.flow-label-k0, .flow-label-k1, .flow-label-k2,
+.init0, .init1, .init2, .init3, .init4, .init5 {
+    border: 1px solid black;
+}
+
+.flow-label0 {
+    transform: translate(-135px, -110%) !important;
+}
+
+.flow-label1 {
+    transform: translate(-50%, -110%) !important;
+}
+
+.flow-label2 {
+    transform: translate(calc(-100% + 135px), -110%) !important;
+}
+
+.flow-label-k0 {
+    transform: translate(-135px, -90%) !important;
+}
+
+.flow-label-k1 {
+    transform: translate(-50%, -90%) !important;
+}
+
+.flow-label-k2 {
+    transform: translate(calc(-100% + 135px), -90%) !important;
+}
+
+.init0, .init1, .init2 {
+    position: absolute;
+    left: 172px;
+    top: 85px;
+}
+
+.init3, .init4, .init5 {
+    position: absolute;
+    left: 545px;
+    top: 85px;
+}
+
+.init0, .init3 {
+    transform: translate(-135px, -180%) !important;
+}
+
+.init1, .init4 {
+    transform: translate(-50%, -180%) !important;
+}
+
+.init2, .init5 {
+    transform: translate(calc(-100% + 135px), -180%) !important;
+}
+
+span[class ^= 'left'] {
+    top: 0;
+    left: 0;
+}
+
+span[class ^= 'right'] {
+    top: 0;
+    right: 0;
+}
+
+.tooltip {
+    white-space: nowrap;
+}
+
+.table-style {
+    min-width: 86em;
+    width: 100%;
+    height: 100%;
+    border: 1px solid;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.boolean-button-bar {
+    margin-left: 10px;
+    width: 80px;
+}
