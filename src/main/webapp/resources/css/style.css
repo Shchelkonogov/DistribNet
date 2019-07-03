@@ -118,6 +118,6 @@ span[class ^= 'right'] {
 }
 
 .boolean-button-bar {
-    margin-left: 10px;
+    margin-left: 10px !important;
     width: 80px;
 }
