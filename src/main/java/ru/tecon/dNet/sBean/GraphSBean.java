@@ -22,13 +22,17 @@ import java.util.logging.Logger;
 @Stateless
 public class GraphSBean {
 
-    private static Logger log = Logger.getLogger(GraphSBean.class.getName());
+    private final static Logger LOG = Logger.getLogger(GraphSBean.class.getName());
 
     private static final String SQL_ALTER = "alter session set NLS_NUMERIC_CHARACTERS = '.,'";
 
-    private static final String SQL_CONSUMERS = "select obj_id2 as obj_id, " +
+    private static final String SQL_CONSUMERS = "select distinct(obj_id2) as obj_id, " +
             "(select obj_name from obj_object where obj_id = obj_id2) as obj_name " +
-            "from obj_rel where obj_rel_type = 321 and obj_id1 = ? order by obj_name";
+            "from (select x.dev_agr_type, x.obj_id1, x.dev_agr_id2, x.obj_id2 " +
+            "from dev_agr_link x, obj_object xx, dev_agr xxx " +
+            "where xx.obj_id = x.obj_id2 and x.obj_id1 = ? and x.dev_agr_type = 514 " +
+            "and x.dev_agr_id2 = xxx.agr_id) " +
+            "order by obj_name";
     private static final String SQL_PRODUCER = "select obj_name from obj_object where obj_id = ?";
     private static final String SQL_INIT_PARAMS = "select n1 as time, n2 as tech_proc, " +
             "n3||'='||n4 as direct_left, n5 as direct_left_color, " +
@@ -39,7 +43,7 @@ public class GraphSBean {
             "n18||'='||n19 as reverse_right, n20 as reverse_right_color, " +
             "n21||'='||n22||' '||n24||'='||n25||' '||n26 as q, " +
             "n27||'='||n28||' '||n30||'='||n31||' '||n33||'='||n34||' '||n36||'='||n37||' '||n39||'='||n40 as k, " +
-            "n29||' '||n32||' '||n35||' '||n38||' '||n41 as k_color from table (mnemo.get_Rnet_CTP_hist_data(?))";
+            "n29||' '||n32||' '||n35||' '||n38||' '||n41 as k_color from table (mnemo.get_Rnet_CTP_hist_data(?, to_date(?, 'dd-mm-yyyy')))";
     private static final String SQL_CONNECTIONS = "select n1||' '||n20||'='||n21 as name, " +
             "n2||'='||n3 as direct_left, n4 as direct_left_color, " +
             "n8||'='||n9 as direct_center, n10 as direct_center_color, " +
@@ -50,7 +54,7 @@ public class GraphSBean {
             "nvl2(n23, n23||'='||n24, null) as k0, n25 as k0_color, " +
             "nvl2(n26, n26||'='||n27, null) as k1, n28 as k1_color, " +
             "nvl2(n29, n29||'='||n30, null) as k2, n31 as k2_color " +
-            "from table (mnemo.get_Rnet_UU_hist_data(?, to_date(?, 'dd-mm-yyyy hh24')))";
+            "from table (mnemo.get_Rnet_UU_hist_data(?, ?, to_date(?, 'dd-mm-yyyy')))";
 
     @Resource(name = "jdbc/DataSource")
     private DataSource ds;
@@ -61,17 +65,18 @@ public class GraphSBean {
      * @return данные мнемосхемы
      * @throws GraphLoadException если запросы вернули не корректные данные
      */
-    public GraphElement loadInitData(int objectId) throws GraphLoadException {
-        log.info("loadInitData start");
+    public GraphElement loadInitData(int objectId, String date) throws GraphLoadException {
+        LOG.info("loadInitData start");
         GraphElement init = null;
         try (Connection connect = ds.getConnection();
              PreparedStatement stmAlter = connect.prepareStatement(SQL_ALTER);
              PreparedStatement stm = connect.prepareStatement(SQL_INIT_PARAMS)) {
             stmAlter.executeQuery();
             stm.setInt(1, objectId);
+            stm.setString(2, date);
             ResultSet res = stm.executeQuery();
             if (res.next()) {
-                init = new GraphElement(0, null, res.getString(1));
+                init = new GraphElement(0, null, date);
 
                 Connector connector = new Connector(res.getString(15));
                 connector.getIn()[0] = new ConnectorValue(res.getString(3), res.getString(4));
@@ -84,15 +89,15 @@ public class GraphSBean {
                 init.addConnect(connector);
 
                 if (init.getDate() == null) {
-                    log.warning("loadInitData Источник ни разу не выходил на связь!");
+                    LOG.warning("loadInitData Источник ни разу не выходил на связь!");
                     throw new GraphLoadException("Источник ни разу не выходил на связь!");
                 }
             }
         } catch (SQLException e) {
-            log.warning("loadInitData "+ e.getMessage());
+            LOG.warning("loadInitData "+ e.getMessage());
         }
 
-        log.info("loadInitData end");
+        LOG.info("loadInitData end");
         return init;
     }
 
@@ -104,7 +109,7 @@ public class GraphSBean {
      * @throws GraphLoadException если запросы вернули не корректные данные
      */
     public GraphElement loadGraph(int objectId, String date) throws GraphLoadException {
-        log.info("loadGraph start");
+        LOG.info("loadGraph start");
         GraphElement producer = null;
         try (Connection connect = ds.getConnection();
              PreparedStatement stm = connect.prepareStatement(SQL_PRODUCER)) {
@@ -114,7 +119,7 @@ public class GraphSBean {
                 producer = new GraphElement(objectId, res.getString(1), date);
             }
         } catch (SQLException e) {
-            log.warning("loadGraph " + e.getMessage());
+            LOG.warning("loadGraph " + e.getMessage());
         }
 
         // Загрузка данных присоединенных потребителей
@@ -122,7 +127,7 @@ public class GraphSBean {
             loadConsumers(producer);
         }
 
-        log.info("loadGraph end");
+        LOG.info("loadGraph end");
         return producer;
     }
 
@@ -132,7 +137,7 @@ public class GraphSBean {
      * @throws GraphLoadException если запросы вернули не корректные данные
      */
     private void loadConsumers(GraphElement producer) throws GraphLoadException {
-        log.info("loadConsumers start");
+        LOG.info("loadConsumers start");
         try (Connection connect = ds.getConnection();
              PreparedStatement stm = connect.prepareStatement(SQL_CONSUMERS)) {
             stm.setInt(1, producer.getObjectId());
@@ -141,44 +146,55 @@ public class GraphSBean {
                 producer.addChildren(new GraphElement(res.getInt(1), res.getString(2)));
             }
         } catch (SQLException e) {
-            log.warning("loadConsumers " + e.getMessage());
+            LOG.warning("loadConsumers " + e.getMessage());
         }
 
         if (producer.getChildren() == null) {
-            log.warning("loadConsumers У источника нету потребителей!");
+            LOG.warning("loadConsumers У источника нету потребителей!");
             throw new GraphLoadException("У источника нету потребителей!");
         }
 
         // Загрузка данных по связам для каждого объекта мнемосхемы
         loadConnections(producer);
 
-        log.info("loadConsumers end");
+        LOG.info("loadConsumers end");
     }
 
     /**
      * Загрузка данных по связям для каждого элемента мнемосхемы
      * @param producer данные мнемосхемы
      */
-    private void loadConnections(GraphElement producer) {
-        log.info("loadConnections start");
+    private void loadConnections(GraphElement producer) throws GraphLoadException {
+        LOG.info("loadConnections start");
         try (Connection connect = ds.getConnection();
              PreparedStatement stmAlter = connect.prepareStatement(SQL_ALTER);
              PreparedStatement stm = connect.prepareStatement(SQL_CONNECTIONS)) {
             stmAlter.executeQuery();
-            doConnections(stm, producer, producer.getDate());
+            doConnections(stm, producer, producer.getDate(), producer.getObjectId());
 
             for (GraphElement el: producer.getChildren()) {
-                doConnections(stm, el, producer.getDate());
+                doConnections(stm, el, producer.getDate(), producer.getObjectId());
+            }
+
+            if (producer.getConnectors().size() == 0) {
+                LOG.warning("loadConnections: Источник не слинкован!");
+                throw new GraphLoadException("Источник не слинкован!");
+            }
+            producer.getChildren().removeIf(consumer -> consumer.getConnectors().size() == 0);
+            if (producer.getChildren().size() == 0) {
+                LOG.warning("loadConnections: Потребители источника не слинкованы!");
+                throw new GraphLoadException("Потребители источника не слинкованы!");
             }
         } catch (SQLException e) {
-            log.warning("loadConnections " + e.getMessage());
+            LOG.warning("loadConnections " + e.getMessage());
         }
-        log.info("loadConnections end");
+        LOG.info("loadConnections end");
     }
 
-    private void doConnections(PreparedStatement stm, GraphElement producer, String date) throws SQLException {
-        stm.setInt(1, producer.getObjectId());
-        stm.setString(2, date);
+    private void doConnections(PreparedStatement stm, GraphElement producer, String date, int id) throws SQLException {
+        stm.setInt(1, id);
+        stm.setInt(2, producer.getObjectId());
+        stm.setString(3, date);
         ResultSet res = stm.executeQuery();
 
         while (res.next()) {

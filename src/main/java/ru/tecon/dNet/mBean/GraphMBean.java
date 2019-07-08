@@ -17,8 +17,11 @@ import ru.tecon.dNet.sBean.GraphSBean;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ManagedProperty;
-import javax.faces.bean.RequestScoped;
+import javax.faces.bean.ViewScoped;
+import javax.faces.context.FacesContext;
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,13 +29,17 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @ManagedBean(name = "graph")
-@RequestScoped
-public class GraphMBean {
+@ViewScoped
+public class GraphMBean implements Serializable {
 
     private static Logger log = Logger.getLogger(GraphMBean.class.getName());
 
-    @ManagedProperty("#{param.object}")
     private int object;
+    private LocalDate localDate;
+    private DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
+    private GraphElement producerData;
+    private GraphElement init = null;
 
     //Высота элементы мнемосхемы в пикселях
     private static final int BLOCK_HEIGHT = 100;
@@ -55,6 +62,12 @@ public class GraphMBean {
     private boolean co = true;
     private boolean gvs = true;
     private boolean vent = true;
+    private boolean isVisibleGvs = false;
+    private boolean isVisibleCo = false;
+    private boolean isVisibleVent = false;
+    private static final String CO = "ЦО";
+    private static final String GVS = "ГВС";
+    private static final String VENT = "ВЕНТ";
 
     private String error;
 
@@ -63,7 +76,8 @@ public class GraphMBean {
 
     @PostConstruct
     public void init() {
-        // TODO проверить работу ошибки и поместить ее в центр окна
+        //TODO объекты которые проверяю: 7302, 22851, 22965, 22854
+        //TODO проверить работу ошибки и поместить ее в центр окна
 //        if (true) {
 //            error = "asdasdasd";
 //            return;
@@ -81,22 +95,52 @@ public class GraphMBean {
         diagramModelRight.setDefaultConnector(connector);
 
         //Загрузка информации по графу
-        GraphElement init;
-        GraphElement producer;
-        try {
-            //TODO объекты которые проверяю: 20867, 7302
-            init = bean.loadInitData(object);
-            producer = bean.loadGraph(object, init.getDate());
-        } catch (GraphLoadException e) {
-            log.warning(e.getMessage());
-            error = e.getMessage();
-            return;
+        if (producerData == null) {
+            object = Integer.valueOf(FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("object"));
+            String date = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("date");
+            localDate = LocalDate.parse(date, dtf);
+
+            try {
+                init = bean.loadInitData(object, date);
+                producerData = bean.loadGraph(object, init.getDate());
+
+                checkVisible(producerData);
+
+                producerData.getChildren().forEach(this::checkVisible);
+            } catch (GraphLoadException e) {
+                log.warning(e.getMessage());
+                error = e.getMessage();
+                return;
+            }
+        } else {
+            styles = new StringBuilder();
+            checkStyleList.clear();
+            tooltips.clear();
+            error = "";
+            producerIndex = null;
+            temperature = "";
+            temperatureColor = "";
+        }
+
+        GraphElement producer = clone(producerData);
+        if (!gvs) {
+            producer.getConnectors().removeIf(el -> el.getName().matches(GVS + ".*"));
+            producer.getChildren().forEach(el -> el.getConnectors().removeIf(f -> f.getName().matches(GVS + ".*")));
+        }
+        if (!co) {
+            producer.getConnectors().removeIf(el -> el.getName().matches(CO + ".*"));
+            producer.getChildren().forEach(el -> el.getConnectors().removeIf(f -> f.getName().matches(CO + ".*")));
+        }
+        if (!vent) {
+            producer.getConnectors().removeIf(el -> el.getName().matches(VENT + ".*"));
+            producer.getChildren().forEach(el -> el.getConnectors().removeIf(f -> f.getName().matches(VENT + ".*")));
         }
 
         //Убираем элементы из графа если нету связей
         producer.getChildren().removeIf(consumer -> consumer.getConnectors().size() == 0);
         if (producer.getChildren().size() == 0) {
-            error = "Потребители источника не слинкованы!";
+            log.info("init: Выберите систему для отображения!");
+            error = "Выберите систему для отображения!";
             return;
         }
 
@@ -139,14 +183,14 @@ public class GraphMBean {
         diagramModelLeft.addElement(prodRight);
 
         addStyle(producer, "right", "Left");
-        styles.append("#diaLeft-idProd, #diaLeft-idInvisible")
+        styles.append("#left\\:diaLeft-idProd, #left\\:diaLeft-idInvisible")
                 .append("{height: ")
                 .append(BLOCK_HEIGHT * producer.getConnectors().size())
                 .append("px;} ")
-                .append("#diaLeft-idInvisible {visibility: hidden; width: 1em;}");
+                .append("#left\\:diaLeft-idInvisible {visibility: hidden; width: 1em;}");
 
         initConnections(prodLeft, prodRight, producer, diagramModelLeft);
-        tooltips.add(new Tooltip("diaLeft-idProd", producer.getTooltip()));
+        tooltips.add(new Tooltip("left\\:diaLeft-idProd", producer.getTooltip()));
 
         //Создаем элемент и связь для входных данных в источник
         Element initElement = new Element(
@@ -188,21 +232,21 @@ public class GraphMBean {
             diagramModelRight.addElement(right);
 
             addStyle(el, "left", "Right");
-            styles.append("#diaRight-id")
+            styles.append("#right\\:diaRight-id")
                     .append(yPos)
-                    .append(", #diaRight-id")
+                    .append(", #right\\:diaRight-id")
                     .append(yPos)
                     .append("invisible")
                     .append("{height: ")
                     .append(BLOCK_HEIGHT * el.getConnectors().size())
                     .append("px;} ")
-                    .append("#diaRight-id")
+                    .append("#right\\:diaRight-id")
                     .append(yPos)
                     .append("invisible")
                     .append("{visibility: hidden; width: 1em;}");
 
             initConnections(left, right, el, diagramModelRight);
-            tooltips.add(new Tooltip("diaRight-id" + yPos, el.getTooltip()));
+            tooltips.add(new Tooltip("right\\:diaRight-id" + yPos, el.getTooltip()));
 
             yPos += 20 + (BLOCK_HEIGHT * el.getConnectors().size());
         }
@@ -221,10 +265,10 @@ public class GraphMBean {
         diagramModelRight.addElement(leftWrapper);
         diagramModelRight.addElement(downWrapper);
 
-        styles.append("#diaRight-idLeftWrapper {height: ")
-                .append(yPos - 30)
+        styles.append("#right\\:diaRight-idLeftWrapper {height: ")
+                .append(Math.max(yPos - 30, BLOCK_HEIGHT * producer.getConnectors().size() + 120))
                 .append("px; width: 1em; box-shadow: none;}")
-                .append("#diaRight-idDownWrapper{height: 1em; width: 1em; visibility: hidden;}");
+                .append("#right\\:diaRight-idDownWrapper{height: 1em; width: 1em; visibility: hidden;}");
     }
 
     private void initConnections(Element left, Element right, GraphElement el, DefaultDiagramModel model) {
@@ -356,8 +400,37 @@ public class GraphMBean {
         }
     }
 
+    private void checkVisible(GraphElement graphElement) {
+        graphElement.getConnectors().forEach(el -> {
+            if (!isVisibleGvs && el.getName().matches(GVS + ".*")) {
+                isVisibleGvs = true;
+            }
+            if (!isVisibleCo && el.getName().matches(CO + ".*")) {
+                isVisibleCo = true;
+            }
+            if (!isVisibleVent && el.getName().matches(VENT + ".*")) {
+                isVisibleVent = true;
+            }
+        });
+    }
+
+    private GraphElement clone(GraphElement o2) {
+        GraphElement o1 = new GraphElement(o2.getObjectId(), o2.getTooltip(), o2.getDate());
+        for (Connector el: o2.getConnectors()) {
+            o1.addConnect(el);
+        }
+        for (GraphElement el: o2.getChildren()) {
+            GraphElement o3 = new GraphElement(el.getObjectId(), el.getTooltip(), el.getDate());
+            for (Connector item: el.getConnectors()) {
+                o3.addConnect(item);
+            }
+            o1.addChildren(o3);
+        }
+        return o1;
+    }
+
     public void changeButton() {
-        System.out.println(isCo() + " " + isGvs() + " " + isVent());
+        init();
     }
 
     public ConnectorValue[] getProducerIndex() {
@@ -374,14 +447,6 @@ public class GraphMBean {
 
     public DefaultDiagramModel getDiagramModelRight() {
         return diagramModelRight;
-    }
-
-    public int getObject() {
-        return object;
-    }
-
-    public void setObject(int object) {
-        this.object = object;
     }
 
     public List<Tooltip> getTooltips() {
@@ -422,5 +487,33 @@ public class GraphMBean {
 
     public void setVent(boolean vent) {
         this.vent = vent;
+    }
+
+    public boolean isVisibleGvs() {
+        return isVisibleGvs;
+    }
+
+    public boolean isVisibleCo() {
+        return isVisibleCo;
+    }
+
+    public boolean isVisibleVent() {
+        return isVisibleVent;
+    }
+
+    public int getObject() {
+        return object;
+    }
+
+    public String getNextDate() {
+        return localDate.plusDays(1).format(dtf);
+    }
+
+    public String getDate() {
+        return localDate.format(dtf);
+    }
+
+    public String getBeforeDate() {
+        return localDate.minusDays(1).format(dtf);
     }
 }

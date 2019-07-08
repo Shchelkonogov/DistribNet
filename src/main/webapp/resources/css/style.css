@@ -25,7 +25,8 @@ body {
 .init-node {
     height: 4em;
     width: 48em;
-    color: black;
+    color: #464F60;
+    font-weight: bold;
     background-color: white !important;
     box-shadow: none;
     border: none;
@@ -120,4 +121,12 @@ span[class ^= 'right'] {
 .boolean-button-bar {
     margin-left: 10px !important;
     width: 80px;
+}
+
+.ui-button-icon-only .ui-icon.pi.pi-angle-left {
+    font-size: 2em;
+}
+
+.ui-button-icon-only .ui-icon.pi.pi-angle-right {
+    font-size: 2em;
 }
