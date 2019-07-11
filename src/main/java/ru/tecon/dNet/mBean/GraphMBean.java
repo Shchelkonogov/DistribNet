@@ -68,6 +68,7 @@ public class GraphMBean implements Serializable {
     private static final String CO = "ЦО";
     private static final String GVS = "ГВС";
     private static final String VENT = "ВЕНТ";
+    private static final String TC = "ТС";
 
     private String error;
 
@@ -76,8 +77,10 @@ public class GraphMBean implements Serializable {
 
     @PostConstruct
     public void init() {
-        //TODO объекты которые проверяю: 7302, 22851, 22965, 22854
-        //TODO проверить работу ошибки и поместить ее в центр окна
+        //TODO
+        // объекты которые проверяю: 7302, 22851, 22965, 22854
+        // проверить работу ошибки и поместить ее в центр окна
+        // http://172.16.4.26:7001/dNet/index.xhtml?object=7302&date=06-03-2019
 //        if (true) {
 //            error = "asdasdasd";
 //            return;
@@ -107,6 +110,11 @@ public class GraphMBean implements Serializable {
                 checkVisible(producerData);
 
                 producerData.getChildren().forEach(this::checkVisible);
+
+                if (bean.checkSummer(date)) {
+                    co = false;
+                    vent = false;
+                }
             } catch (GraphLoadException e) {
                 log.warning(e.getMessage());
                 error = e.getMessage();
@@ -138,7 +146,7 @@ public class GraphMBean implements Serializable {
 
         //Убираем элементы из графа если нету связей
         producer.getChildren().removeIf(consumer -> consumer.getConnectors().size() == 0);
-        if (producer.getChildren().size() == 0) {
+        if ((producer.getChildren().size() == 0) || (producer.getConnectors().size() == 0)) {
             log.info("init: Выберите систему для отображения!");
             error = "Выберите систему для отображения!";
             return;
@@ -208,10 +216,10 @@ public class GraphMBean implements Serializable {
 
         diagramModelLeft.connect(createConnection(initElement.getEndPoints().get(1),
                 prodLeft.getEndPoints().get(prodLeft.getEndPoints().size() - 2),
-                init.getConnectors().get(0).getIn(), false, true));
+                init.getConnectors().get(0).getIn(), false, true, getColor(TC)));
         diagramModelLeft.connect(createConnection(initElement.getEndPoints().get(0),
                 prodLeft.getEndPoints().get(prodLeft.getEndPoints().size() - 1),
-                init.getConnectors().get(0).getOut(), true, true));
+                init.getConnectors().get(0).getOut(), true, true, getColor(TC)));
 
         //Созадем связку элемент соединитель элемент для потребителей
         int yPos = 10;
@@ -284,7 +292,7 @@ public class GraphMBean implements Serializable {
             model.connect(createConnection(
                     left.getEndPoints().get(3 * i),
                     right.getEndPoints().get(3 * i),
-                    el.getConnectors().get(i).getIn(), false, false));
+                    el.getConnectors().get(i).getIn(), false, false, getColor(el.getConnectors().get(i).getName())));
 
             model.connect(createConnection(
                     left.getEndPoints().get(3 * i + 1),
@@ -293,7 +301,27 @@ public class GraphMBean implements Serializable {
             model.connect(createConnection(
                     left.getEndPoints().get(3 * i + 2),
                     right.getEndPoints().get(3 * i + 2),
-                    el.getConnectors().get(i).getOut(), true, false));
+                    el.getConnectors().get(i).getOut(), true, false, getColor(el.getConnectors().get(i).getName())));
+        }
+    }
+
+    private String getColor(String name) {
+        if (name.matches(TC + ".*")) {
+            return "#FF0000";
+        } else {
+            if (name.matches(CO + ".*")) {
+                return "#ff7f00";
+            } else {
+                if (name.matches(GVS + ".*")) {
+                    return "#00FF00";
+                } else {
+                    if (name.matches(VENT + ".*")) {
+                        return "#FFFF00";
+                    } else {
+                        return "#404a4e";
+                    }
+                }
+            }
         }
     }
 
@@ -341,7 +369,8 @@ public class GraphMBean implements Serializable {
      * @param isConnector вариант соединителя (true FlowChartConnector)
      * @return элемент связи
      */
-    private Connection createConnection(EndPoint from, EndPoint to, ConnectorValue[] label, boolean isLeft, boolean isConnector) {
+    private Connection createConnection(EndPoint from, EndPoint to, ConnectorValue[] label, boolean isLeft,
+                                        boolean isConnector, String color) {
         Connection conn = new Connection(from, to);
 
         if (isLeft) {
@@ -350,12 +379,14 @@ public class GraphMBean implements Serializable {
             conn.getOverlays().add(new ArrowOverlay(20, 20, 1, 1));
         }
 
+        org.primefaces.model.diagram.connector.Connector connector;
         if (isConnector) {
-            FlowChartConnector connector = new FlowChartConnector();
-            connector.setPaintStyle("{strokeStyle:'#404a4e', lineWidth:3}");
-
-            conn.setConnector(connector);
+            connector = new FlowChartConnector();
+        } else {
+            connector = new StraightConnector();
         }
+        connector.setPaintStyle("{strokeStyle:'" + color + "', lineWidth:3}");
+        conn.setConnector(connector);
 
         if (label != null) {
             for (int i = 0; i < label.length; i++) {
@@ -415,12 +446,12 @@ public class GraphMBean implements Serializable {
     }
 
     private GraphElement clone(GraphElement o2) {
-        GraphElement o1 = new GraphElement(o2.getObjectId(), o2.getTooltip(), o2.getDate());
+        GraphElement o1 = new GraphElement(o2.getObjectId(), o2.getFullTooltip(), o2.getDate());
         for (Connector el: o2.getConnectors()) {
             o1.addConnect(el);
         }
         for (GraphElement el: o2.getChildren()) {
-            GraphElement o3 = new GraphElement(el.getObjectId(), el.getTooltip(), el.getDate());
+            GraphElement o3 = new GraphElement(el.getObjectId(), el.getFullTooltip(), el.getDate());
             for (Connector item: el.getConnectors()) {
                 o3.addConnect(item);
             }
