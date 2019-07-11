@@ -18,8 +18,8 @@ public class GraphElement implements Serializable {
         this.objectId = objectId;
         if (name != null) {
             this.tooltip = name;
-            this.name = name;
-            if (name.length() > 25) {
+            this.name = name.contains("title=") ? name.substring(0, name.indexOf("title=")) : name;
+            if (this.name.length() > 25) {
                 while (this.name.length() > 25) {
                     this.name = this.name.substring(0, this.name.lastIndexOf(' '));
                 }
@@ -46,6 +46,10 @@ public class GraphElement implements Serializable {
     }
 
     public String getTooltip() {
+        return tooltip.replace("title=", ", ");
+    }
+
+    public String getFullTooltip() {
         return tooltip;
     }
 
