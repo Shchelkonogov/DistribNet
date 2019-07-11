@@ -33,7 +33,8 @@ public class GraphSBean {
             "where xx.obj_id = x.obj_id2 and x.obj_id1 = ? and x.dev_agr_type = 514 " +
             "and x.dev_agr_id2 = xxx.agr_id) " +
             "order by obj_name";
-    private static final String SQL_PRODUCER = "select obj_name from obj_object where obj_id = ?";
+    private static final String SQL_PRODUCER = "select obj_name || 'title=' || (select GET_OBJ_ADDRESS(?) from dual) " +
+            "from obj_object where obj_id = ?";
     private static final String SQL_INIT_PARAMS = "select n1 as time, n2 as tech_proc, " +
             "n3||'='||n4 as direct_left, n5 as direct_left_color, " +
             "n9||'='||n10 as direct_center, n11 as direct_center_color, " +
@@ -55,6 +56,11 @@ public class GraphSBean {
             "nvl2(n26, n26||'='||n27, null) as k1, n28 as k1_color, " +
             "nvl2(n29, n29||'='||n30, null) as k2, n31 as k2_color " +
             "from table (mnemo.get_Rnet_UU_hist_data(?, ?, to_date(?, 'dd-mm-yyyy')))";
+    public static final String SQL_CHECK_SUMMER = "select decode(season, 'LETO', '1', '0') " +
+            "from (select season from sys_season_log " +
+            "where updated_when < to_date(?, 'dd-mm-yyyy') " +
+            "order by updated_when desc) " +
+            "where rownum = 1";
 
     @Resource(name = "jdbc/DataSource")
     private DataSource ds;
@@ -114,6 +120,7 @@ public class GraphSBean {
         try (Connection connect = ds.getConnection();
              PreparedStatement stm = connect.prepareStatement(SQL_PRODUCER)) {
             stm.setInt(1, objectId);
+            stm.setInt(2, objectId);
             ResultSet res = stm.executeQuery();
             if (res.next()) {
                 producer = new GraphElement(objectId, res.getString(1), date);
@@ -129,6 +136,28 @@ public class GraphSBean {
 
         LOG.info("loadGraph end");
         return producer;
+    }
+
+    /**
+     * Метод который позволяет определить какой режим в системе
+     * (лето или зима)
+     * @param date дата
+     * @return true если лето, false если зима
+     * @throws GraphLoadException если произошла ошибка в sql
+     */
+    public boolean checkSummer(String date) throws GraphLoadException {
+        try (Connection connect = ds.getConnection();
+             PreparedStatement stm = connect.prepareStatement(SQL_CHECK_SUMMER)) {
+            stm.setString(1, date);
+            ResultSet res = stm.executeQuery();
+            if (res.next()) {
+                return res.getBoolean(1);
+            }
+        } catch (SQLException e) {
+            LOG.warning("checkSummer " + e.getMessage());
+            throw new GraphLoadException("Ошибка сервера");
+        }
+        return false;
     }
 
     /**
