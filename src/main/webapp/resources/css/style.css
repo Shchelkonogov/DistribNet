@@ -130,3 +130,11 @@ span[class ^= 'right'] {
 .ui-button-icon-only .ui-icon.pi.pi-angle-right {
     font-size: 2em;
 }
+
+.col1 {
+    width: 50px;
+}
+
+.col2 {
+    width: 229px;
+}

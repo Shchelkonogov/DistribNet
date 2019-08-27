@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -61,6 +62,31 @@ public class GraphSBean {
             "where updated_when < to_date(?, 'dd-mm-yyyy') " +
             "order by updated_when desc) " +
             "where rownum = 1";
+    private static final String SQL_PROBLEM_IDS = "select trim(case when p1 = 0 then '1' end || " +
+            "case when p2 = 0 then ' 2' end || " +
+            "case when p3 = 0 then ' 3' end || " +
+            "case when p4 = 0 then ' 4' end || " +
+            "case when p5 = 0 then ' 5' end || " +
+            "case when p6 = 0 then ' 6' end || " +
+            "case when p7 = 0 then ' 7' end || " +
+            "case when p8 = 0 then ' 8' end || " +
+            "case when p9 = 0 then ' 9' end || " +
+            "case when p10 = 0 then ' 10' end || " +
+            "case when p11 = 0 then ' 11' end || " +
+            "case when p12 = 0 then ' 12' end || " +
+            "case when p13 = 0 then ' 13' end || " +
+            "case when p14 = 0 then ' 14' end || " +
+            "case when p15 = 0 then ' 15' end || " +
+            "case when p16 = 0 then ' 16' end || " +
+            "case when p17 = 0 then ' 17' end || " +
+            "case when p18 = 0 then ' 18' end || " +
+            "case when p19 = 0 then ' 19' end || " +
+            "case when p20 = 0 then ' 20' end || " +
+            "case when p21 = 0 then ' 21' end || " +
+            "case when p22 = 0 then ' 22' end || " +
+            "case when p23 = 0 then ' 23' end) as ids " +
+            "from table(dsp_0090t.sel_matrix_ctp_detail(?, to_date(?, 'dd-mm-yyyy')))";
+    private static final String SQL_PROBLEMS = "select techproc, problem_name from dz_rs_problem where problem_id in (?)";
 
     @Resource(name = "jdbc/DataSource")
     private DataSource ds;
@@ -244,6 +270,48 @@ public class GraphSBean {
                 connector.getCenter()[2] = new ConnectorValue(res.getString("k2"), res.getString("k2_color"));
             }
             producer.addConnect(connector);
+        }
+    }
+
+    public void getProblems(Map<String, List<String>> problems, int id, String date) {
+        try (Connection connect = ds.getConnection();
+                PreparedStatement stm = connect.prepareStatement(SQL_PROBLEM_IDS)) {
+            stm.setInt(1, id);
+            stm.setString(2, date);
+
+            List<String> ids = null;
+
+            ResultSet res = stm.executeQuery();
+            if (res.next()) {
+                ids = new ArrayList<>(Arrays.asList(res.getString(1).split(" ")));
+            }
+
+            if (ids != null) {
+                StringBuilder builder = new StringBuilder();
+
+                ids.forEach(e -> builder.append("?,"));
+
+                String sql = SQL_PROBLEMS.replace("?", builder.deleteCharAt(builder.length() - 1));
+
+                try (PreparedStatement stmProblems = connect.prepareStatement(sql)) {
+                    for (int i = 0; i < ids.size(); i++) {
+                        stmProblems.setString(i + 1, ids.get(i));
+                    }
+
+                    res = stmProblems.executeQuery();
+                    while (res.next()) {
+                        if (problems.containsKey(res.getString(1))) {
+                            problems.get(res.getString(1)).add(res.getString(2));
+                        } else {
+                            problems.put(res.getString(1), new ArrayList<>(Collections.singletonList(res.getString(2))));
+                        }
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }

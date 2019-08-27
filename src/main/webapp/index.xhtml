@@ -19,7 +19,7 @@
     <table class="table-style" cellspacing="0" cellpadding="0">
         <tr>
             <td valign="top" style="width: 48.1em; min-width: 48.1em">
-                <h:form id="left" style="height: calc(100% - 45px);">
+                <h:form id="left" style="height: calc(100% - 245px);">
                     <p:diagram id="diaLeft"
                                value="#{graph.diagramModelLeft}"
                                style="min-height: 400px; height: 100%; overflow: hidden;"
@@ -53,6 +53,22 @@
                 </h:form>
 
                 <h:form>
+                    <div style="height: 200px; width: 300px; margin: 0 auto; overflow: auto; border: solid black 1px;">
+                        <p:repeat value="#{graph.problemsName}" var="pr">
+                            <h:panelGrid style="margin-bottom: -2px;" columns="2" columnClasses="col1, col2"
+                                         border="1" cellspacing="0" cellpadding="0">
+                                <h:outputText value="#{pr}"/>
+                                <p:outputPanel>
+                                    <h:dataTable value="#{graph.getProblemsValues(pr)}" var="val">
+                                        <h:column>
+                                            <h:outputText value="#{val}"/>
+                                        </h:column>
+                                    </h:dataTable>
+                                </p:outputPanel>
+                            </h:panelGrid>
+                        </p:repeat>
+                    </div>
+
                     <table style="width: 100%">
                         <tr>
                             <td>

@@ -22,9 +22,7 @@ import javax.faces.context.FacesContext;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -71,6 +69,8 @@ public class GraphMBean implements Serializable {
     private static final String TC = "ТС";
 
     private String error;
+
+    private Map<String, List<String>> problems = new HashMap<>();
 
     @EJB
     private GraphSBean bean;
@@ -120,6 +120,8 @@ public class GraphMBean implements Serializable {
                 error = e.getMessage();
                 return;
             }
+
+            bean.getProblems(problems, object, date);
         } else {
             styles = new StringBuilder();
             checkStyleList.clear();
@@ -546,5 +548,13 @@ public class GraphMBean implements Serializable {
 
     public String getBeforeDate() {
         return localDate.minusDays(1).format(dtf);
+    }
+
+    public List<String> getProblemsName() {
+        return new ArrayList<>(problems.keySet());
+    }
+
+    public List<String> getProblemsValues(String key) {
+        return problems.get(key);
     }
 }
