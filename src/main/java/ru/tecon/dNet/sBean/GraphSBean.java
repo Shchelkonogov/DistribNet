@@ -13,6 +13,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -57,7 +59,8 @@ public class GraphSBean {
             "nvl2(n26, n26||'='||n27, null) as k1, n28 as k1_color, " +
             "nvl2(n29, n29||'='||n30, null) as k2, n31 as k2_color " +
             "from table (mnemo.get_Rnet_UU_hist_data(?, ?, to_date(?, 'dd-mm-yyyy')))";
-    public static final String SQL_CHECK_SUMMER = "select decode(season, 'LETO', '1', '0') " +
+    private static final String SQL_REDIRECT = "select mnemo_ip, mnemo_port from dz_sys_param";
+    private static final String SQL_CHECK_SUMMER = "select decode(season, 'LETO', '1', '0') " +
             "from (select season from sys_season_log " +
             "where updated_when < to_date(?, 'dd-mm-yyyy') " +
             "order by updated_when desc) " +
@@ -313,5 +316,18 @@ public class GraphSBean {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getRedirectUrl(String object) {
+        try (Connection connect = ds.getConnection();
+             PreparedStatement stm = connect.prepareStatement(SQL_REDIRECT)) {
+            ResultSet res = stm.executeQuery();
+            if (res.next()) {
+                return "http://" + res.getString(1) + ":" + res.getString(2) + "/mnemo/?objectId=" + object;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

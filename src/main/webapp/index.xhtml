@@ -10,10 +10,15 @@
 <h:head>
     <title>Мнемосхема разводящей сети</title>
     <h:outputStylesheet name="style.css" library="css"/>
+    <h:outputScript name="script.js" library="js"/>
 </h:head>
 <h:body>
     <h:form id="css-style">
         <style type="text/css">#{graph.styles}</style>
+    </h:form>
+
+    <h:form>
+        <p:remoteCommand name="redirectJSF" action="#{graph.redirect}"/>
     </h:form>
 
     <table class="table-style" cellspacing="0" cellpadding="0">

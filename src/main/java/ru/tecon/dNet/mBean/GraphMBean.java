@@ -1,5 +1,6 @@
 package ru.tecon.dNet.mBean;
 
+import org.primefaces.PrimeFaces;
 import org.primefaces.model.diagram.Connection;
 import org.primefaces.model.diagram.DefaultDiagramModel;
 import org.primefaces.model.diagram.Element;
@@ -72,19 +73,13 @@ public class GraphMBean implements Serializable {
 
     private Map<String, List<String>> problems = new HashMap<>();
 
+    private List<Integer> consumersId = new ArrayList<>();
+
     @EJB
     private GraphSBean bean;
 
     @PostConstruct
     public void init() {
-        //TODO
-        // объекты которые проверяю: 7302, 22851, 22965, 22854
-        // проверить работу ошибки и поместить ее в центр окна
-        // http://172.16.4.26:7001/dNet/index.xhtml?object=7302&date=06-03-2019
-//        if (true) {
-//            error = "asdasdasd";
-//            return;
-//        }
         //Объявляем граф
         diagramModelLeft = new DefaultDiagramModel();
         diagramModelLeft.setMaxConnections(-1);
@@ -183,7 +178,7 @@ public class GraphMBean implements Serializable {
                         "right"),
                 "18em", "9em");
         prodLeft.setDraggable(false);
-        prodLeft.setId("idProd");
+        prodLeft.setId("idProd-objectIdLeft");
 
         Element prodRight = new Element(null, "55em", "9em");
         prodRight.setDraggable(false);
@@ -193,14 +188,14 @@ public class GraphMBean implements Serializable {
         diagramModelLeft.addElement(prodRight);
 
         addStyle(producer, "right", "Left");
-        styles.append("#left\\:diaLeft-idProd, #left\\:diaLeft-idInvisible")
+        styles.append("#left\\:diaLeft-idProd-objectIdLeft, #left\\:diaLeft-idInvisible")
                 .append("{height: ")
                 .append(BLOCK_HEIGHT * producer.getConnectors().size())
                 .append("px;} ")
                 .append("#left\\:diaLeft-idInvisible {visibility: hidden; width: 1em;}");
 
         initConnections(prodLeft, prodRight, producer, diagramModelLeft);
-        tooltips.add(new Tooltip("left\\:diaLeft-idProd", producer.getTooltip()));
+        tooltips.add(new Tooltip("left\\:diaLeft-idProd-objectIdLeft", producer.getTooltip()));
 
         //Создаем элемент и связь для входных данных в источник
         Element initElement = new Element(
@@ -225,7 +220,10 @@ public class GraphMBean implements Serializable {
 
         //Созадем связку элемент соединитель элемент для потребителей
         int yPos = 10;
+        int index = 0;
+        consumersId.clear();
         for (GraphElement el : producer.getChildren()) {
+            consumersId.add(el.getObjectId());
             Element left = new Element(null, "0em", yPos + "px");
             left.setDraggable(false);
             left.setId("id" + yPos + "invisible");
@@ -236,7 +234,7 @@ public class GraphMBean implements Serializable {
                             "left"),
                     "24em", yPos + "px");
             right.setDraggable(false);
-            right.setId("id" + yPos);
+            right.setId("id" + yPos + "-objectIdRight" + index);
 
             diagramModelRight.addElement(left);
             diagramModelRight.addElement(right);
@@ -244,6 +242,8 @@ public class GraphMBean implements Serializable {
             addStyle(el, "left", "Right");
             styles.append("#right\\:diaRight-id")
                     .append(yPos)
+                    .append("-objectIdRight")
+                    .append(index)
                     .append(", #right\\:diaRight-id")
                     .append(yPos)
                     .append("invisible")
@@ -256,9 +256,10 @@ public class GraphMBean implements Serializable {
                     .append("{visibility: hidden; width: 1em;}");
 
             initConnections(left, right, el, diagramModelRight);
-            tooltips.add(new Tooltip("right\\:diaRight-id" + yPos, el.getTooltip()));
+            tooltips.add(new Tooltip("right\\:diaRight-id" + yPos + "-objectIdRight" + index, el.getTooltip()));
 
             yPos += 20 + (BLOCK_HEIGHT * el.getConnectors().size());
+            index++;
         }
 
         //Добавляем объединяющий вертикальный элемент
@@ -464,6 +465,29 @@ public class GraphMBean implements Serializable {
 
     public void changeButton() {
         init();
+    }
+
+    public void redirect() {
+        String id = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("objectId");
+
+        String objectId = null;
+
+        if (id.equals("Left")) {
+            objectId = String.valueOf(object);
+        } else {
+            try {
+                objectId = String.valueOf(consumersId.get(Integer.valueOf(id)));
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+
+            //Временно отключил ветку потребителей
+            objectId = null;
+        }
+
+        if (objectId != null) {
+            PrimeFaces.current().executeScript("window.open('" + bean.getRedirectUrl(objectId) + "'), '_blank'");
+        }
     }
 
     public ConnectorValue[] getProducerIndex() {
