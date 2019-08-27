@@ -58,7 +58,7 @@
                 </h:form>
 
                 <h:form>
-                    <div style="height: 200px; width: 300px; margin: 0 auto; overflow: auto; border: solid black 1px;">
+                    <div style="height: 200px; width: 400px; margin: 0 auto; overflow: auto; border: solid black 1px;">
                         <p:repeat value="#{graph.problemsName}" var="pr">
                             <h:panelGrid style="margin-bottom: -2px;" columns="2" columnClasses="col1, col2"
                                          border="1" cellspacing="0" cellpadding="0">
@@ -66,7 +66,7 @@
                                 <p:outputPanel>
                                     <h:dataTable value="#{graph.getProblemsValues(pr)}" var="val">
                                         <h:column>
-                                            <h:outputText value="#{val}"/>
+                                            <h:outputText value="#{val.name}" style="background-color: #{val.color};"/>
                                         </h:column>
                                     </h:dataTable>
                                 </p:outputPanel>

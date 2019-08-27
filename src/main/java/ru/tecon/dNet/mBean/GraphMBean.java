@@ -71,7 +71,7 @@ public class GraphMBean implements Serializable {
 
     private String error;
 
-    private Map<String, List<String>> problems = new HashMap<>();
+    private Map<String, List<Problem>> problems = new HashMap<>();
 
     private List<Integer> consumersId = new ArrayList<>();
 
@@ -578,7 +578,7 @@ public class GraphMBean implements Serializable {
         return new ArrayList<>(problems.keySet());
     }
 
-    public List<String> getProblemsValues(String key) {
+    public List<Problem> getProblemsValues(String key) {
         return problems.get(key);
     }
 }

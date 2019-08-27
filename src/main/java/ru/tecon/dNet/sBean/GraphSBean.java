@@ -4,6 +4,7 @@ import ru.tecon.dNet.exception.GraphLoadException;
 import ru.tecon.dNet.model.Connector;
 import ru.tecon.dNet.model.ConnectorValue;
 import ru.tecon.dNet.model.GraphElement;
+import ru.tecon.dNet.model.Problem;
 
 import javax.annotation.Resource;
 import javax.ejb.Startup;
@@ -87,9 +88,17 @@ public class GraphSBean {
             "case when p20 = 0 then ' 20' end || " +
             "case when p21 = 0 then ' 21' end || " +
             "case when p22 = 0 then ' 22' end || " +
-            "case when p23 = 0 then ' 23' end) as ids " +
+            "case when p23 = 0 then ' 23' end || " +
+            "case when p24 = 0 then ' 24' end || " +
+            "case when p25 = 0 then ' 25' end || " +
+            "case when p26 = 0 then ' 26' end || " +
+            "case when p27 = 0 then ' 27' end || " +
+            "case when p28 = 0 then ' 28' end || " +
+            "case when p29 = 0 then ' 29' end || " +
+            "case when p30 = 0 then ' 30' end || " +
+            "case when p31 = 0 then ' 31' end) as ids " +
             "from table(dsp_0090t.sel_matrix_ctp_detail(?, to_date(?, 'dd-mm-yyyy')))";
-    private static final String SQL_PROBLEMS = "select techproc, problem_name from dz_rs_problem where problem_id in (?)";
+    private static final String SQL_PROBLEMS = "select techproc, problem_name, color from dz_rs_problem where problem_id in (?)";
 
     @Resource(name = "jdbc/DataSource")
     private DataSource ds;
@@ -276,7 +285,7 @@ public class GraphSBean {
         }
     }
 
-    public void getProblems(Map<String, List<String>> problems, int id, String date) {
+    public void getProblems(Map<String, List<Problem>> problems, int id, String date) {
         try (Connection connect = ds.getConnection();
                 PreparedStatement stm = connect.prepareStatement(SQL_PROBLEM_IDS)) {
             stm.setInt(1, id);
@@ -304,9 +313,10 @@ public class GraphSBean {
                     res = stmProblems.executeQuery();
                     while (res.next()) {
                         if (problems.containsKey(res.getString(1))) {
-                            problems.get(res.getString(1)).add(res.getString(2));
+                            problems.get(res.getString(1)).add(new Problem(res.getString(2), res.getString(3)));
                         } else {
-                            problems.put(res.getString(1), new ArrayList<>(Collections.singletonList(res.getString(2))));
+                            problems.put(res.getString(1), new ArrayList<>(Collections.singletonList(
+                                    new Problem(res.getString(2), res.getString(3)))));
                         }
                     }
                 } catch (SQLException e) {
