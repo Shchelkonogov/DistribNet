@@ -160,7 +160,7 @@ public class GraphSBean {
             stm.setInt(2, objectId);
             ResultSet res = stm.executeQuery();
             if (res.next()) {
-                producer = new GraphElement(objectId, res.getString(1), date);
+                producer = new GraphElement(objectId, res.getString(1), date, 25);
             }
         } catch (SQLException e) {
             LOG.warning("loadGraph " + e.getMessage());
@@ -209,7 +209,7 @@ public class GraphSBean {
             stm.setInt(1, producer.getObjectId());
             ResultSet res = stm.executeQuery();
             while (res.next()) {
-                producer.addChildren(new GraphElement(res.getInt(1), res.getString(2)));
+                producer.addChildren(new GraphElement(res.getInt(1), res.getString(2), 34));
             }
         } catch (SQLException e) {
             LOG.warning("loadConsumers " + e.getMessage());

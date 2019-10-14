@@ -235,6 +235,7 @@ public class GraphMBean implements Serializable {
                     "24em", yPos + "px");
             right.setDraggable(false);
             right.setId("id" + yPos + "-objectIdRight" + index);
+            right.setStyleClass("ui-diagram-element-right");
 
             diagramModelRight.addElement(left);
             diagramModelRight.addElement(right);
@@ -449,12 +450,12 @@ public class GraphMBean implements Serializable {
     }
 
     private GraphElement clone(GraphElement o2) {
-        GraphElement o1 = new GraphElement(o2.getObjectId(), o2.getFullTooltip(), o2.getDate());
+        GraphElement o1 = new GraphElement(o2.getObjectId(), o2.getFullTooltip(), o2.getDate(), o2.getTrimSize());
         for (Connector el: o2.getConnectors()) {
             o1.addConnect(el);
         }
         for (GraphElement el: o2.getChildren()) {
-            GraphElement o3 = new GraphElement(el.getObjectId(), el.getFullTooltip(), el.getDate());
+            GraphElement o3 = new GraphElement(el.getObjectId(), el.getFullTooltip(), el.getDate(), el.getTrimSize());
             for (Connector item: el.getConnectors()) {
                 o3.addConnect(item);
             }

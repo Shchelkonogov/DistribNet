@@ -13,14 +13,16 @@ public class GraphElement implements Serializable {
     private List<Connector> connectors = new ArrayList<>();
     private List<GraphElement> children;
     private String date;
+    private int trimSize;
 
-    public GraphElement(int objectId, String name) {
+    public GraphElement(int objectId, String name, int trimSize) {
         this.objectId = objectId;
         if (name != null) {
+            this.trimSize = trimSize;
             this.tooltip = name;
             this.name = name.contains("title=") ? name.substring(0, name.indexOf("title=")) : name;
-            if (this.name.length() > 25) {
-                while (this.name.length() > 25) {
+            if (this.name.length() > trimSize) {
+                while (this.name.length() > trimSize) {
                     this.name = this.name.substring(0, this.name.lastIndexOf(' '));
                 }
                 this.name += "...";
@@ -28,9 +30,14 @@ public class GraphElement implements Serializable {
         }
     }
 
-    public GraphElement(int objectId, String name, String date) {
-        this(objectId, name);
+    public GraphElement(int objectId, String name, String date, int trimSize) {
+        this(objectId, name, trimSize);
         this.date = date;
+        this.trimSize = trimSize;
+    }
+
+    public GraphElement(int objectId, String name, String date) {
+        this(objectId, name, date, 0);
     }
 
     public void addConnect(Connector connectors) {
@@ -71,6 +78,10 @@ public class GraphElement implements Serializable {
 
     public String getDate() {
         return date;
+    }
+
+    public int getTrimSize() {
+        return trimSize;
     }
 
     @Override
