@@ -58,7 +58,8 @@ public class GraphSBean {
             "n17||'='||n18 as reverse_right, n19 as reverse_right_color," +
             "nvl2(n23, n23||'='||n24, null) as k0, n25 as k0_color, " +
             "nvl2(n26, n26||'='||n27, null) as k1, n28 as k1_color, " +
-            "nvl2(n29, n29||'='||n30, null) as k2, n31 as k2_color " +
+            "nvl2(n29, n29||'='||n30, null) as k2, n31 as k2_color, " +
+            "n21 as energy " +
             "from table (mnemo.get_Rnet_UU_hist_data(?, ?, to_date(?, 'dd-mm-yyyy')))";
     private static final String SQL_REDIRECT = "select mnemo_ip, mnemo_port from dz_sys_param";
     private static final String SQL_CHECK_SUMMER = "select decode(season, 'LETO', '1', '0') " +
@@ -266,6 +267,7 @@ public class GraphSBean {
 
         while (res.next()) {
             Connector connector = new Connector(res.getString(1));
+            connector.setEnergy(res.getString("energy"));
             connector.getIn()[0] = new ConnectorValue(res.getString(2), res.getString(3));
             connector.getIn()[1] = new ConnectorValue(res.getString(4), res.getString(5));
             connector.getIn()[2] = new ConnectorValue(res.getString(6), res.getString(7));

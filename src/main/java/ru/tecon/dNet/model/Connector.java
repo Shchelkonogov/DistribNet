@@ -7,6 +7,7 @@ import java.util.StringJoiner;
 public class Connector implements Serializable {
 
     private String name;
+    private String energy;
     private ConnectorValue[] in = new ConnectorValue[3];
     private ConnectorValue[] out = new ConnectorValue[3];
     private ConnectorValue[] center = new ConnectorValue[3];
@@ -31,10 +32,19 @@ public class Connector implements Serializable {
         return center;
     }
 
+    public String getEnergy() {
+        return energy;
+    }
+
+    public void setEnergy(String energy) {
+        this.energy = energy;
+    }
+
     @Override
     public String toString() {
         return new StringJoiner(", ", Connector.class.getSimpleName() + "[", "]")
                 .add("name='" + name + "'")
+                .add("energy='" + energy + "'")
                 .add("in=" + Arrays.toString(in))
                 .add("out=" + Arrays.toString(out))
                 .add("center=" + Arrays.toString(center))
