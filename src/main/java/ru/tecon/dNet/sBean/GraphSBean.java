@@ -65,37 +65,37 @@ public class GraphSBean {
             "where updated_when < to_date(?, 'dd-mm-yyyy') " +
             "order by updated_when desc) " +
             "where rownum = 1";
-    private static final String SQL_PROBLEM_IDS = "select trim(case when p1 = 0 then '1' end || " +
-            "case when p2 = 0 then ' 2' end || " +
-            "case when p3 = 0 then ' 3' end || " +
-            "case when p4 = 0 then ' 4' end || " +
-            "case when p5 = 0 then ' 5' end || " +
-            "case when p6 = 0 then ' 6' end || " +
-            "case when p7 = 0 then ' 7' end || " +
-            "case when p8 = 0 then ' 8' end || " +
-            "case when p9 = 0 then ' 9' end || " +
-            "case when p10 = 0 then ' 10' end || " +
-            "case when p11 = 0 then ' 11' end || " +
-            "case when p12 = 0 then ' 12' end || " +
-            "case when p13 = 0 then ' 13' end || " +
-            "case when p14 = 0 then ' 14' end || " +
-            "case when p15 = 0 then ' 15' end || " +
-            "case when p16 = 0 then ' 16' end || " +
-            "case when p17 = 0 then ' 17' end || " +
-            "case when p18 = 0 then ' 18' end || " +
-            "case when p19 = 0 then ' 19' end || " +
-            "case when p20 = 0 then ' 20' end || " +
-            "case when p21 = 0 then ' 21' end || " +
-            "case when p22 = 0 then ' 22' end || " +
-            "case when p23 = 0 then ' 23' end || " +
-            "case when p24 = 0 then ' 24' end || " +
-            "case when p25 = 0 then ' 25' end || " +
-            "case when p26 = 0 then ' 26' end || " +
-            "case when p27 = 0 then ' 27' end || " +
-            "case when p28 = 0 then ' 28' end || " +
-            "case when p29 = 0 then ' 29' end || " +
-            "case when p30 = 0 then ' 30' end || " +
-            "case when p31 = 0 then ' 31' end) as ids " +
+    private static final String SQL_PROBLEM_IDS = "select trim(case when p1 = 1 then '1' end || " +
+            "case when p2 = 1 then ' 2' end || " +
+            "case when p3 = 1 then ' 3' end || " +
+            "case when p4 = 1 then ' 4' end || " +
+            "case when p5 = 1 then ' 5' end || " +
+            "case when p6 = 1 then ' 6' end || " +
+            "case when p7 = 1 then ' 7' end || " +
+            "case when p8 = 1 then ' 8' end || " +
+            "case when p9 = 1 then ' 9' end || " +
+            "case when p10 = 1 then ' 10' end || " +
+            "case when p11 = 1 then ' 11' end || " +
+            "case when p12 = 1 then ' 12' end || " +
+            "case when p13 = 1 then ' 13' end || " +
+            "case when p14 = 1 then ' 14' end || " +
+            "case when p15 = 1 then ' 15' end || " +
+            "case when p16 = 1 then ' 16' end || " +
+            "case when p17 = 1 then ' 17' end || " +
+            "case when p18 = 1 then ' 18' end || " +
+            "case when p19 = 1 then ' 19' end || " +
+            "case when p20 = 1 then ' 20' end || " +
+            "case when p21 = 1 then ' 21' end || " +
+            "case when p22 = 1 then ' 22' end || " +
+            "case when p23 = 1 then ' 23' end || " +
+            "case when p24 = 1 then ' 24' end || " +
+            "case when p25 = 1 then ' 25' end || " +
+            "case when p26 = 1 then ' 26' end || " +
+            "case when p27 = 1 then ' 27' end || " +
+            "case when p28 = 1 then ' 28' end || " +
+            "case when p29 = 1 then ' 29' end || " +
+            "case when p30 = 1 then ' 30' end || " +
+            "case when p31 = 1 then ' 31' end) as ids " +
             "from table(dsp_0090t.sel_matrix_ctp_detail(?, to_date(?, 'dd-mm-yyyy')))";
     private static final String SQL_PROBLEMS = "select techproc, problem_name, color from dz_rs_problem where problem_id in (?)";
 
@@ -300,7 +300,7 @@ public class GraphSBean {
             List<String> ids = null;
 
             ResultSet res = stm.executeQuery();
-            if (res.next()) {
+            if (res.next() && res.getString(1) != null) {
                 ids = new ArrayList<>(Arrays.asList(res.getString(1).split(" ")));
             }
 
