@@ -285,6 +285,12 @@ public class GraphSBean {
         }
     }
 
+    /**
+     * Загрузка списка проблем возникшик на мнемосхеме
+     * @param problems map в которой хранятся проблемы
+     * @param id id объекта
+     * @param date дата по которой смотрим проблемы (dd-mm-yyyy)
+     */
     public void getProblems(Map<String, List<Problem>> problems, int id, String date) {
         try (Connection connect = ds.getConnection();
                 PreparedStatement stm = connect.prepareStatement(SQL_PROBLEM_IDS)) {
@@ -328,6 +334,12 @@ public class GraphSBean {
         }
     }
 
+    /**
+     * Метод возвращает url для перехода на мнемосхему объектов
+     * при нажатии на объект
+     * @param object id объекта
+     * @return url аддрес
+     */
     public String getRedirectUrl(String object) {
         try (Connection connect = ds.getConnection();
              PreparedStatement stm = connect.prepareStatement(SQL_REDIRECT)) {
