@@ -21,6 +21,7 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -174,7 +175,7 @@ public class GraphMBean implements Serializable {
         //Созадем связку элемент соединитель элемент для источника
         Element prodLeft = new Element(
                 new DiagramElement(producer.getName(),
-                        producer.getConnectors().stream().map(Connector::getName).collect(Collectors.toList()),
+                        getCTPName(producer),
                         "right"),
                 "18em", "9em");
         prodLeft.setDraggable(false);
@@ -281,6 +282,38 @@ public class GraphMBean implements Serializable {
                 .append(Math.max(yPos - 30, BLOCK_HEIGHT * producer.getConnectors().size() + 120))
                 .append("px; width: 1em; box-shadow: none;}")
                 .append("#right\\:diaRight-idDownWrapper{height: 1em; width: 1em; visibility: hidden;}");
+    }
+
+    private List<String> getCTPName(GraphElement producer) {
+        return producer.getConnectors().stream().map(e -> {
+            if (e.getName().contains(" ")) {
+                String name = e.getName().split(" ")[0];
+
+                boolean isData = producer.getChildren().stream()
+                        .anyMatch(v -> v.getConnectors().stream().filter(f1 -> f1.getName().contains(name))
+                                .anyMatch(f2 -> !f2.getEnergy().equals("н/д")));
+
+                if (isData) {
+                    double test = producer.getChildren().stream().mapToDouble(v -> {
+                        Optional<Connector> value = v.getConnectors().stream().filter(f -> f.getName().contains(name)).findFirst();
+                        if (value.isPresent()) {
+                            try {
+                                return new BigDecimal(value.get().getEnergy()).doubleValue();
+                            } catch (NumberFormatException ex) {
+                                return 0;
+                            }
+                        } else {
+                            return 0;
+                        }
+                    }).sum();
+                    return e.getName() + "; Σ=" + test;
+                } else {
+                    return e.getName() + "; Σ=" + "н/д";
+                }
+            } else {
+                return e.getName();
+            }
+        }).collect(Collectors.toList());
     }
 
     private void initConnections(Element left, Element right, GraphElement el, DefaultDiagramModel model) {
