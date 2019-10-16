@@ -22,6 +22,7 @@ import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -306,7 +307,7 @@ public class GraphMBean implements Serializable {
                             return 0;
                         }
                     }).sum();
-                    return e.getName() + "; Σ=" + test;
+                    return e.getName() + "; Σ=" + new BigDecimal(test).setScale(2, RoundingMode.HALF_EVEN);
                 } else {
                     return e.getName() + "; Σ=" + "н/д";
                 }
