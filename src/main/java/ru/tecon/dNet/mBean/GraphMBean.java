@@ -176,7 +176,7 @@ public class GraphMBean implements Serializable {
         //Созадем связку элемент соединитель элемент для источника
         Element prodLeft = new Element(
                 new DiagramElement(producer.getName(),
-                        getCTPName(producer),
+                        getCTPName(producer), getCTPSumName(producer),
                         "right"),
                 "18em", "9em");
         prodLeft.setDraggable(false);
@@ -189,7 +189,8 @@ public class GraphMBean implements Serializable {
         diagramModelLeft.addElement(prodLeft);
         diagramModelLeft.addElement(prodRight);
 
-        addStyle(producer, "right", "Left");
+        addStyle(producer, "right", "LeftUp", -3);
+        addStyle(producer, "right", "LeftDown", 15);
         styles.append("#left\\:diaLeft-idProd-objectIdLeft, #left\\:diaLeft-idInvisible")
                 .append("{height: ")
                 .append(BLOCK_HEIGHT * producer.getConnectors().size())
@@ -291,8 +292,8 @@ public class GraphMBean implements Serializable {
                 String name = e.getName().split(" ")[0];
 
                 boolean isData = producer.getChildren().stream()
-                        .anyMatch(v -> v.getConnectors().stream().filter(f1 -> f1.getName().contains(name))
-                                .anyMatch(f2 -> !f2.getEnergy().equals("н/д")));
+                        .anyMatch(v -> v.getConnectors().stream()
+                                .anyMatch(f -> f.getName().contains(name) && !f.getEnergy().equals("н/д")));
 
                 if (isData) {
                     double test = producer.getChildren().stream().mapToDouble(v -> {
@@ -307,14 +308,82 @@ public class GraphMBean implements Serializable {
                             return 0;
                         }
                     }).sum();
-                    return e.getName() + "; Σ=" + new BigDecimal(test).setScale(2, RoundingMode.HALF_EVEN);
+                    return e.getName() + "; ΣQ=" + new BigDecimal(test).setScale(2, RoundingMode.HALF_EVEN);
                 } else {
-                    return e.getName() + "; Σ=" + "н/д";
+                    return e.getName() + "; ΣQ=" + "н/д";
                 }
             } else {
                 return e.getName();
             }
         }).collect(Collectors.toList());
+    }
+
+    private List<String> getCTPSumName(GraphElement producer) {
+        return producer.getConnectors().stream().map(e -> {
+            if (e.getName().contains(" ")) {
+                String name = e.getName().split(" ")[0];
+                String result = "";
+
+                boolean isData = producer.getChildren().stream()
+                        .anyMatch(v -> v.getConnectors().stream()
+                                .anyMatch(f -> f.getName().contains(name) && !f.getIn()[2].getValue().contains("н/д")));
+
+                if (isData) {
+                    double test = producer.getChildren().stream().mapToDouble(v -> {
+                        Optional<Connector> value = v.getConnectors().stream().filter(f -> f.getName().contains(name)).findFirst();
+                        if (value.isPresent()) {
+                            try {
+                                String findStr = value.get().getIn()[2].getValue();
+                                return new BigDecimal(findStr.substring(findStr.indexOf("=") + 1)).doubleValue();
+                            } catch (NumberFormatException ex) {
+                                return 0;
+                            }
+                        } else {
+                            return 0;
+                        }
+                    }).sum();
+                    result += "Σ" + getSumNamePrefix(name) + "под=" + new BigDecimal(test).setScale(1, RoundingMode.HALF_EVEN);
+                } else {
+                    result += "Σ" + getSumNamePrefix(name) + "под=" + "н/д";
+                }
+
+                isData = producer.getChildren().stream()
+                        .anyMatch(v -> v.getConnectors().stream()
+                                .anyMatch(f -> f.getName().contains(name) && !f.getOut()[2].getValue().contains("н/д")));
+
+                if (isData) {
+                    double test = producer.getChildren().stream().mapToDouble(v -> {
+                        Optional<Connector> value = v.getConnectors().stream().filter(f -> f.getName().contains(name)).findFirst();
+                        if (value.isPresent()) {
+                            try {
+                                String findStr = value.get().getOut()[2].getValue();
+                                return new BigDecimal(findStr.substring(findStr.indexOf("=") + 1)).doubleValue();
+                            } catch (NumberFormatException ex) {
+                                return 0;
+                            }
+                        } else {
+                            return 0;
+                        }
+                    }).sum();
+                    result += "; Σ" + getSumNamePrefix(name) + "обр=" + new BigDecimal(test).setScale(1, RoundingMode.HALF_EVEN);
+                } else {
+                    result += "; Σ" + getSumNamePrefix(name) + "обр=" + "н/д";
+                }
+
+                return result;
+            } else {
+                return "";
+            }
+        }).collect(Collectors.toList());
+    }
+
+    private String getSumNamePrefix(String name) {
+        switch (name) {
+            case CO:
+            case VENT: return "G";
+            case GVS: return "V";
+            default: return "";
+        }
     }
 
     private void initConnections(Element left, Element right, GraphElement el, DefaultDiagramModel model) {
@@ -447,13 +516,17 @@ public class GraphMBean implements Serializable {
     }
 
     private void addStyle(GraphElement element, String direction, String graph) {
+        addStyle(element, direction, graph, 0);
+    }
+
+    private void addStyle(GraphElement element, String direction, String graph, int increment) {
         int size = element.getConnectors().size();
         if (!checkStyleList.contains(size + direction + graph)) {
             checkStyleList.add(size + direction + graph);
 
             for (int i = 0; i < size; i++) {
                 double y = (double) (2 * i + 1) * (BLOCK_HEIGHT * size + 2) / (size * 2 + 1) - 35.2 +
-                        (double) (BLOCK_HEIGHT * size + 2) / (2 * (size * 2 + 1));
+                        (double) (BLOCK_HEIGHT * size + 2) / (2 * (size * 2 + 1)) + increment;
 
                 styles.append(".text")
                         .append(graph)

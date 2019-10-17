@@ -32,8 +32,13 @@
                         <f:facet name="element">
                             <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
                             <p:repeat value="#{el.values}" var="value" varStatus="status">
-                                <h:outputText styleClass="#{el.className}#{el.size} textLeftGraph#{status.index}"
+                                <h:outputText styleClass="#{el.className}#{el.size} textLeftUpGraph#{status.index}"
                                               value="#{value}"
+                                              style="position: absolute;"/>
+                            </p:repeat>
+                            <p:repeat value="#{el.sumValues}" var="sumValue" varStatus="status">
+                                <h:outputText styleClass="#{el.className}#{el.size} textLeftDownGraph#{status.index}"
+                                              value="#{sumValue}"
                                               style="position: absolute;"/>
                             </p:repeat>
                         </f:facet>
@@ -68,7 +73,7 @@
                                                       value="#{prNameStatus.index + 1}." />
                                         <h:outputText style="font-size: 16px;"
                                                       value=" #{prName.name}" />
-                                        <br/>
+                                        <br />
                                     </p:repeat>
                                 </p:outputPanel>
                             </h:panelGrid>
