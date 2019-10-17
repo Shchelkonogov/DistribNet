@@ -11,6 +11,34 @@
     <title>Мнемосхема разводящей сети</title>
     <h:outputStylesheet name="style.css" library="css"/>
     <h:outputScript name="script.js" library="js"/>
+    <script type="application/javascript">
+        PrimeFaces.locales ['ru'] = {
+            closeText: 'Закрыть',
+            prevText: 'Назад',
+            nextText: 'Вперёд',
+            monthNames: ['Январь', 'Февраль' , 'Март' , 'Апрель' , 'Май' , 'Июнь' , 'Июль' , 'Август' , 'Сентябрь','Октябрь','Ноябрь','Декабрь' ],
+            monthNamesShort: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек' ],
+            dayNames: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
+            dayNamesShort: ['Воск','Пон' , 'Вт' , 'Ср' , 'Четв' , 'Пят' , 'Суб'],
+            dayNamesMin: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+            weekHeader: 'Неделя',
+            firstDay: 1,
+            isRTL: false,
+            showMonthAfterYear: false,
+            yearSuffix:'',
+            timeOnlyTitle: 'Только время',
+            timeText: 'Время',
+            hourText: 'Час',
+            minuteText: 'Минута',
+            secondText: 'Секунда',
+            currentText: 'Сегодня',
+            ampm: false,
+            month: 'Месяц',
+            week: 'неделя',
+            day: 'День',
+            allDayText: 'Весь день'
+        };
+    </script>
 </h:head>
 <h:body>
     <h:form id="css-style">
@@ -111,11 +139,13 @@
                                           icon="pi pi-angle-left"/>
                             </td>
                             <td style="width: 80px; text-align: center;">
-                                <div style="font-weight: bold; color: #464F60;">#{graph.date}</div>
+                                <p:calendar inputStyle="width: 90px;" value="#{graph.calendarDate}" locale="ru" pattern="dd-MM-yyyy" maxdate="#{graph.maxDate}">
+                                    <p:ajax event="dateSelect" />
+                                </p:calendar>
                             </td>
                             <td style="width: 35px; text-align: left;">
                                 <p:button outcome="index.xhtml?object=#{graph.object}&amp;date=#{graph.nextDate}"
-                                          icon="pi pi-angle-right"/>
+                                          icon="pi pi-angle-right" disabled="#{graph.buttonDisabled}"/>
                             </td>
                         </tr>
                     </table>

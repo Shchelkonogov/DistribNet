@@ -20,10 +20,12 @@ import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
+import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.logging.Logger;
@@ -189,7 +191,7 @@ public class GraphMBean implements Serializable {
         diagramModelLeft.addElement(prodLeft);
         diagramModelLeft.addElement(prodRight);
 
-        addStyle(producer, "right", "LeftUp", -3);
+        addStyle(producer, "right", "LeftUp", -5);
         addStyle(producer, "right", "LeftDown", 15);
         styles.append("#left\\:diaLeft-idProd-objectIdLeft, #left\\:diaLeft-idInvisible")
                 .append("{height: ")
@@ -674,12 +676,30 @@ public class GraphMBean implements Serializable {
         return localDate.plusDays(1).format(dtf);
     }
 
-    public String getDate() {
-        return localDate.format(dtf);
-    }
-
     public String getBeforeDate() {
         return localDate.minusDays(1).format(dtf);
+    }
+
+    public Date getCalendarDate() {
+        return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    }
+
+    public void setCalendarDate(Date date) {
+        localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        try {
+            FacesContext.getCurrentInstance().getExternalContext()
+                    .redirect("index.xhtml?object=" + getObject() + "&date=" + localDate.format(dtf));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getMaxDate() {
+        return LocalDate.now().format(dtf);
+    }
+
+    public boolean isButtonDisabled() {
+        return !localDate.isBefore(LocalDate.now());
     }
 
     public List<String> getProblemsName() {
