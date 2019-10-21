@@ -38,25 +38,30 @@ public class GraphSBean {
     private static final String SQL_PRODUCER = "select obj_name || 'title=' || (select GET_OBJ_ADDRESS(?) from dual) " +
             "from obj_object where obj_id = ?";
     private static final String SQL_INIT_PARAMS = "select n1 as time, n2 as tech_proc, " +
-            "n3||'='||n4 as direct_left, n5 as direct_left_color, " +
-            "n9||'='||n10 as direct_center, n11 as direct_center_color, " +
-            "n15||'='||n16 as direct_right, n17 as direct_right_color, " +
-            "n6||'='||n7 as reverse_left, n8 as reverse_left_color, " +
-            "n12||'='||n13 as reverse_center, n14 as reverse_center_Color, " +
-            "n18||'='||n19 as reverse_right, n20 as reverse_right_color, " +
-            "n21||'='||n22||' '||n24||'='||n25||' '||n26 as q, " +
-            "n27||'='||n28||' '||n30||'='||n31||' '||n33||'='||n34||' '||n36||'='||n37||' '||n39||'='||n40 as k, " +
-            "n29||' '||n32||' '||n35||' '||n38||' '||n41 as k_color from table (mnemo.get_Rnet_CTP_hist_data(?, to_date(?, 'dd-mm-yyyy')))";
-    private static final String SQL_CONNECTIONS = "select n1||' '||n20||'='||n21 as name, " +
-            "n2||'='||n3 as direct_left, n4 as direct_left_color, " +
-            "n8||'='||n9 as direct_center, n10 as direct_center_color, " +
-            "n14||'='||n15 as direct_right, n16 as direct_right_color, " +
-            "n5||'='||n6 as reverse_left, n7 as reverse_left_color, " +
-            "n11||'='||n12 as reverse_center, n13 as reverse_center_Color, " +
-            "n17||'='||n18 as reverse_right, n19 as reverse_right_color," +
-            "nvl2(n23, n23||'='||n24, null) as k0, n25 as k0_color, " +
-            "nvl2(n26, n26||'='||n27, null) as k1, n28 as k1_color, " +
-            "nvl2(n29, n29||'='||n30, null) as k2, n31 as k2_color, " +
+            "nvl2(n4, n3||'='||n4, null) as direct_left, n5 as direct_left_color, " +
+            "nvl2(n10, n9||'='||n10, null) as direct_center, n11 as direct_center_color, " +
+            "nvl2(n16, n15||'='||n16, null) as direct_right, n17 as direct_right_color, " +
+            "nvl2(n7, n6||'='||n7, null) as reverse_left, n8 as reverse_left_color, " +
+            "nvl2(n13, n12||'='||n13, null) as reverse_center, n14 as reverse_center_Color, " +
+            "nvl2(n19, n18||'='||n19, null) as reverse_right, n20 as reverse_right_color, " +
+            "nvl2(n22, n21||'='||n22, null) as q, " +
+            "nvl2(n25, n24||'='||n25, null) as temperature, n26 as temperature_color, " +
+            "nvl2(n28, n27||'='||n28, null) as k0, n29 as k0_color, " +
+            "nvl2(n31, n30||'='||n31, null) as k1, n32 as k1_color, " +
+            "nvl2(n34, n33||'='||n34, null) as k2, n35 as k2_color, " +
+            "nvl2(n37, n36||'='||n37, null) as k3, n38 as k3_color, " +
+            "nvl2(n40, n39||'='||n40, null) as k4, n41 as k4_color " +
+            "from table (mnemo.get_Rnet_CTP_hist_data(?, to_date(?, 'dd-mm-yyyy')))";
+    private static final String SQL_CONNECTIONS = "select nvl2(n21, n1||' '||n20||'='||n21, n1) as name, " +
+            "nvl2(n3, n2||'='||n3, null) as direct_left, n4 as direct_left_color, " +
+            "nvl2(n9, n8||'='||n9, null) as direct_center, n10 as direct_center_color, " +
+            "nvl2(n15, n14||'='||n15, null) as direct_right, n16 as direct_right_color, " +
+            "nvl2(n6, n5||'='||n6, null) as reverse_left, n7 as reverse_left_color, " +
+            "nvl2(n12, n11||'='||n12, null) as reverse_center, n13 as reverse_center_Color, " +
+            "nvl2(n18, n17||'='||n18, null) as reverse_right, n19 as reverse_right_color," +
+            "nvl2(n24, n23||'='||n24, null) as k0, n25 as k0_color, " +
+            "nvl2(n27, n26||'='||n27, null) as k1, n28 as k1_color, " +
+            "nvl2(n30, n29||'='||n30, null) as k2, n31 as k2_color, " +
             "n21 as energy " +
             "from table (mnemo.get_Rnet_UU_hist_data(?, ?, to_date(?, 'dd-mm-yyyy')))";
     private static final String SQL_REDIRECT = "select mnemo_ip, mnemo_port from dz_sys_param";
@@ -121,14 +126,31 @@ public class GraphSBean {
             if (res.next()) {
                 init = new GraphElement(0, null, date);
 
-                Connector connector = new Connector(res.getString(15));
-                connector.getIn()[0] = new ConnectorValue(res.getString(3), res.getString(4));
-                connector.getIn()[1] = new ConnectorValue(res.getString(5), res.getString(6));
-                connector.getIn()[2] = new ConnectorValue(res.getString(7), res.getString(8));
-                connector.getOut()[0] = new ConnectorValue(res.getString(9), res.getString(10));
-                connector.getOut()[1] = new ConnectorValue(res.getString(11), res.getString(12));
-                connector.getOut()[2] = new ConnectorValue(res.getString(13), res.getString(14));
-                connector.getCenter()[0] = new ConnectorValue(res.getString("k"), res.getString("k_color"));
+                Connector connector = new Connector(res.getString("q"));
+                connector.setTemperature(new ConnectorValue(res.getString("temperature"), res.getString("temperature_color")));
+                if (res.getString(3) != null) {
+                    connector.getIn()[0] = new ConnectorValue(res.getString(3), res.getString(4));
+                }
+                if (res.getString(5) != null) {
+                    connector.getIn()[1] = new ConnectorValue(res.getString(5), res.getString(6));
+                }
+                if (res.getString(7) != null) {
+                    connector.getIn()[2] = new ConnectorValue(res.getString(7), res.getString(8));
+                }
+                if (res.getString(9) != null) {
+                    connector.getOut()[0] = new ConnectorValue(res.getString(9), res.getString(10));
+                }
+                if (res.getString(11) != null) {
+                    connector.getOut()[1] = new ConnectorValue(res.getString(11), res.getString(12));
+                }
+                if (res.getString(13) != null) {
+                    connector.getOut()[2] = new ConnectorValue(res.getString(13), res.getString(14));
+                }
+                loadCoefficient(connector, res, 0);
+                loadCoefficient(connector, res, 1);
+                loadCoefficient(connector, res, 2);
+                loadCoefficient(connector, res, 3);
+                loadCoefficient(connector, res, 4);
                 init.addConnect(connector);
 
                 if (init.getDate() == null) {
@@ -142,6 +164,19 @@ public class GraphSBean {
 
         LOG.info("loadInitData end");
         return init;
+    }
+
+    /**
+     * Метод для получения коэффициентов
+     * @param connector элемент в который кладем значения
+     * @param res результаты выполнения запроса
+     * @param index индекс коэффициента
+     * @throws SQLException если есть ошибка при работе с бд
+     */
+    private void loadCoefficient(Connector connector, ResultSet res, int index) throws SQLException {
+        if (res.getString("k" + index) != null) {
+            connector.getCenter()[index] = new ConnectorValue(res.getString("k" + index), res.getString("k" + index + "_color"));
+        }
     }
 
     /**
@@ -266,21 +301,27 @@ public class GraphSBean {
         while (res.next()) {
             Connector connector = new Connector(res.getString(1));
             connector.setEnergy(res.getString("energy"));
-            connector.getIn()[0] = new ConnectorValue(res.getString(2), res.getString(3));
-            connector.getIn()[1] = new ConnectorValue(res.getString(4), res.getString(5));
-            connector.getIn()[2] = new ConnectorValue(res.getString(6), res.getString(7));
-            connector.getOut()[0] = new ConnectorValue(res.getString(8), res.getString(9));
-            connector.getOut()[1] = new ConnectorValue(res.getString(10), res.getString(11));
-            connector.getOut()[2] = new ConnectorValue(res.getString(12), res.getString(13));
-            if (res.getString("k0") != null) {
-                connector.getCenter()[0] = new ConnectorValue(res.getString("k0"), res.getString("k0_color"));
+            if (res.getString(2) != null) {
+                connector.getIn()[0] = new ConnectorValue(res.getString(2), res.getString(3));
             }
-            if (res.getString("k1") != null) {
-                connector.getCenter()[1] = new ConnectorValue(res.getString("k1"), res.getString("k1_color"));
+            if (res.getString(4) != null) {
+                connector.getIn()[1] = new ConnectorValue(res.getString(4), res.getString(5));
             }
-            if (res.getString("k2") != null) {
-                connector.getCenter()[2] = new ConnectorValue(res.getString("k2"), res.getString("k2_color"));
+            if (res.getString(6) != null) {
+                connector.getIn()[2] = new ConnectorValue(res.getString(6), res.getString(7));
             }
+            if (res.getString(8) != null) {
+                connector.getOut()[0] = new ConnectorValue(res.getString(8), res.getString(9));
+            }
+            if (res.getString(10) != null) {
+                connector.getOut()[1] = new ConnectorValue(res.getString(10), res.getString(11));
+            }
+            if (res.getString(12) != null) {
+                connector.getOut()[2] = new ConnectorValue(res.getString(12), res.getString(13));
+            }
+            loadCoefficient(connector, res, 0);
+            loadCoefficient(connector, res, 1);
+            loadCoefficient(connector, res, 2);
             producer.addConnect(connector);
         }
     }

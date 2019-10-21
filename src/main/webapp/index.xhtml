@@ -73,21 +73,21 @@
                     </p:diagram>
 
                     <p:repeat value="#{graph.producerIndex}" var="el" varStatus="status">
-                        <div class="ui-widget #{el.color} init#{status.index}">
-                            #{el.value}
-                        </div>
+                        <h:outputText styleClass="ui-widget #{el.color} init#{status.index}"
+                                      rendered="#{el.value != null}"
+                                      value="#{el.value}"/>
                     </p:repeat>
 
-                    <div style="position: absolute; 
-                                top: 48px; 
-                                left: 358px; 
-                                transform: translate(-50%, 0px);
-                                font-weight: bold;
-                                color: #464F60;
-                                background: #{graph.temperatureColor}"
-                         class="ui-widget">
-                        #{graph.temperature}
-                    </div>
+                    <h:outputText style="position: absolute;
+                                        top: 48px;
+                                        left: 358px;
+                                        transform: translate(-50%, 0px);
+                                        font-weight: bold;
+                                        color: #464F60;
+                                        background: #{graph.temperatureColor}"
+                                  styleClass="ui-widget"
+                                  rendered="#{graph.temperature != null}"
+                                  value="#{graph.temperature}" />
                 </h:form>
 
                 <h:form>

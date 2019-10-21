@@ -11,7 +11,7 @@ public class Connector implements Serializable {
     private ConnectorValue temperature;
     private ConnectorValue[] in = new ConnectorValue[3];
     private ConnectorValue[] out = new ConnectorValue[3];
-    private ConnectorValue[] center = new ConnectorValue[3];
+    private ConnectorValue[] center = new ConnectorValue[5];
 
     public Connector(String name) {
         this.name = name;
@@ -33,7 +33,7 @@ public class Connector implements Serializable {
         return center;
     }
 
-    public String getEnergy() {
+    String getEnergy() {
         return energy;
     }
 

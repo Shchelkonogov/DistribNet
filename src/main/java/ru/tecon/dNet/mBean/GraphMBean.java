@@ -14,6 +14,7 @@ import org.primefaces.model.diagram.overlay.LabelOverlay;
 import ru.tecon.dNet.exception.GraphLoadException;
 import ru.tecon.dNet.model.*;
 import ru.tecon.dNet.sBean.GraphSBean;
+import ru.tecon.dNet.util.Graphs;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
@@ -22,8 +23,6 @@ import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import java.io.IOException;
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -68,10 +67,6 @@ public class GraphMBean implements Serializable {
     private boolean isVisibleGvs = false;
     private boolean isVisibleCo = false;
     private boolean isVisibleVent = false;
-    private static final String CO = "ЦО";
-    private static final String GVS = "ГВС";
-    private static final String VENT = "ВЕНТ";
-    private static final String TC = "ТС";
 
     private String error;
 
@@ -133,16 +128,16 @@ public class GraphMBean implements Serializable {
 
         GraphElement producer = clone(producerData);
         if (!gvs) {
-            producer.getConnectors().removeIf(el -> el.getName().matches(GVS + ".*"));
-            producer.getChildren().forEach(el -> el.getConnectors().removeIf(f -> f.getName().matches(GVS + ".*")));
+            producer.getConnectors().removeIf(el -> el.getName().matches(Graphs.GVS + ".*"));
+            producer.getChildren().forEach(el -> el.getConnectors().removeIf(f -> f.getName().matches(Graphs.GVS + ".*")));
         }
         if (!co) {
-            producer.getConnectors().removeIf(el -> el.getName().matches(CO + ".*"));
-            producer.getChildren().forEach(el -> el.getConnectors().removeIf(f -> f.getName().matches(CO + ".*")));
+            producer.getConnectors().removeIf(el -> el.getName().matches(Graphs.CO + ".*"));
+            producer.getChildren().forEach(el -> el.getConnectors().removeIf(f -> f.getName().matches(Graphs.CO + ".*")));
         }
         if (!vent) {
-            producer.getConnectors().removeIf(el -> el.getName().matches(VENT + ".*"));
-            producer.getChildren().forEach(el -> el.getConnectors().removeIf(f -> f.getName().matches(VENT + ".*")));
+            producer.getConnectors().removeIf(el -> el.getName().matches(Graphs.TC + ".*"));
+            producer.getChildren().forEach(el -> el.getConnectors().removeIf(f -> f.getName().matches(Graphs.TC + ".*")));
         }
 
         //Убираем элементы из графа если нету связей
@@ -154,12 +149,28 @@ public class GraphMBean implements Serializable {
         }
 
         //Задаем значение для температуры и ее цвет
-        temperature = init.getConnectors().get(0).getName().split(" ")[1];
-        temperatureColor = init.getConnectors().get(0).getName().split(" ")[2];
+        temperature = init.getConnectors().get(0).getTemperature().getValue();
+        temperatureColor = init.getConnectors().get(0).getTemperature().getColor();
 
         //Задаем значения для коэффикиентов источнка и задаем их стили
-        List<String> values = new ArrayList<>(Arrays.asList(init.getConnectors().get(0).getCenter()[0].getValue().split(" ")));
-        List<String> colors = new ArrayList<>(Arrays.asList(init.getConnectors().get(0).getCenter()[0].getColor().split(" ")));
+        List<String> values = Arrays.stream(init.getConnectors().get(0).getCenter())
+                .map(e -> {
+                    if (e == null) {
+                        return null;
+                    } else {
+                        return e.getValue();
+                    }
+                })
+                .collect(Collectors.toList());
+        List<String> colors = Arrays.stream(init.getConnectors().get(0).getCenter())
+                .map(e -> {
+                    if (e == null) {
+                        return null;
+                    } else {
+                        return e.getColor();
+                    }
+                })
+                .collect(Collectors.toList());
         producerIndex = new ConnectorValue[Math.min(values.size(), colors.size())];
         for (int i = 0; i < producerIndex.length; i++) {
             producerIndex[i] = new ConnectorValue(values.get(i), colors.get(i));
@@ -175,10 +186,12 @@ public class GraphMBean implements Serializable {
             }
         }
 
+        List<String> connectDesc2 = producer.getConnectionDescriptionLine2();
+
         //Созадем связку элемент соединитель элемент для источника
         Element prodLeft = new Element(
                 new DiagramElement(producer.getName(),
-                        getCTPName(producer), getCTPSumName(producer),
+                        producer.getConnectionDescriptionLine1(), connectDesc2,
                         "right"),
                 "18em", "9em");
         prodLeft.setDraggable(false);
@@ -191,8 +204,21 @@ public class GraphMBean implements Serializable {
         diagramModelLeft.addElement(prodLeft);
         diagramModelLeft.addElement(prodRight);
 
-        addStyle(producer, "right", "LeftUp", -5);
-        addStyle(producer, "right", "LeftDown", 15);
+        List<Integer> valuesUp = new ArrayList<>();
+        List<Integer> valuesDown = new ArrayList<>();
+
+        connectDesc2.forEach(s -> {
+            if (s.equals("")) {
+                valuesUp.add(0);
+                valuesDown.add(0);
+            } else {
+                valuesUp.add(-5);
+                valuesDown.add(15);
+            }
+        });
+
+        addStyle(producer, "right", "LeftUp", valuesUp);
+        addStyle(producer, "right", "LeftDown", valuesDown);
         styles.append("#left\\:diaLeft-idProd-objectIdLeft, #left\\:diaLeft-idInvisible")
                 .append("{height: ")
                 .append(BLOCK_HEIGHT * producer.getConnectors().size())
@@ -204,7 +230,7 @@ public class GraphMBean implements Serializable {
 
         //Создаем элемент и связь для входных данных в источник
         Element initElement = new Element(
-                new DiagramElement(init.getConnectors().get(0).getName().split(" ")[0], null, null),
+                new DiagramElement(init.getConnectors().get(0).getName(), null, null),
                 "1em", "0em");
         initElement.addEndPoint(new BlankEndPoint(EndPointAnchor.BOTTOM_LEFT));
         initElement.addEndPoint(new BlankEndPoint(EndPointAnchor.BOTTOM_RIGHT));
@@ -218,10 +244,10 @@ public class GraphMBean implements Serializable {
 
         diagramModelLeft.connect(createConnection(initElement.getEndPoints().get(1),
                 prodLeft.getEndPoints().get(prodLeft.getEndPoints().size() - 2),
-                init.getConnectors().get(0).getIn(), false, true, getColor(TC)));
+                init.getConnectors().get(0).getIn(), false, true, getColor(Graphs.TC)));
         diagramModelLeft.connect(createConnection(initElement.getEndPoints().get(0),
                 prodLeft.getEndPoints().get(prodLeft.getEndPoints().size() - 1),
-                init.getConnectors().get(0).getOut(), true, true, getColor(TC)));
+                init.getConnectors().get(0).getOut(), true, true, getColor(Graphs.TC)));
 
         //Созадем связку элемент соединитель элемент для потребителей
         int yPos = 10;
@@ -288,106 +314,6 @@ public class GraphMBean implements Serializable {
                 .append("#right\\:diaRight-idDownWrapper{height: 1em; width: 1em; visibility: hidden;}");
     }
 
-    private List<String> getCTPName(GraphElement producer) {
-        return producer.getConnectors().stream().map(e -> {
-            if (e.getName().contains(" ")) {
-                String name = e.getName().split(" ")[0];
-
-                boolean isData = producer.getChildren().stream()
-                        .anyMatch(v -> v.getConnectors().stream()
-                                .anyMatch(f -> f.getName().contains(name) && !f.getEnergy().equals("н/д")));
-
-                if (isData) {
-                    double test = producer.getChildren().stream().mapToDouble(v -> {
-                        Optional<Connector> value = v.getConnectors().stream().filter(f -> f.getName().contains(name)).findFirst();
-                        if (value.isPresent()) {
-                            try {
-                                return new BigDecimal(value.get().getEnergy()).doubleValue();
-                            } catch (NumberFormatException ex) {
-                                return 0;
-                            }
-                        } else {
-                            return 0;
-                        }
-                    }).sum();
-                    return e.getName() + "; ΣQ=" + new BigDecimal(test).setScale(2, RoundingMode.HALF_EVEN);
-                } else {
-                    return e.getName() + "; ΣQ=" + "н/д";
-                }
-            } else {
-                return e.getName();
-            }
-        }).collect(Collectors.toList());
-    }
-
-    private List<String> getCTPSumName(GraphElement producer) {
-        return producer.getConnectors().stream().map(e -> {
-            if (e.getName().contains(" ")) {
-                String name = e.getName().split(" ")[0];
-                String result = "";
-
-                boolean isData = producer.getChildren().stream()
-                        .anyMatch(v -> v.getConnectors().stream()
-                                .anyMatch(f -> f.getName().contains(name) && !f.getIn()[2].getValue().contains("н/д")));
-
-                if (isData) {
-                    double test = producer.getChildren().stream().mapToDouble(v -> {
-                        Optional<Connector> value = v.getConnectors().stream().filter(f -> f.getName().contains(name)).findFirst();
-                        if (value.isPresent()) {
-                            try {
-                                String findStr = value.get().getIn()[2].getValue();
-                                return new BigDecimal(findStr.substring(findStr.indexOf("=") + 1)).doubleValue();
-                            } catch (NumberFormatException ex) {
-                                return 0;
-                            }
-                        } else {
-                            return 0;
-                        }
-                    }).sum();
-                    result += "Σ" + getSumNamePrefix(name) + "под=" + new BigDecimal(test).setScale(1, RoundingMode.HALF_EVEN);
-                } else {
-                    result += "Σ" + getSumNamePrefix(name) + "под=" + "н/д";
-                }
-
-                isData = producer.getChildren().stream()
-                        .anyMatch(v -> v.getConnectors().stream()
-                                .anyMatch(f -> f.getName().contains(name) && !f.getOut()[2].getValue().contains("н/д")));
-
-                if (isData) {
-                    double test = producer.getChildren().stream().mapToDouble(v -> {
-                        Optional<Connector> value = v.getConnectors().stream().filter(f -> f.getName().contains(name)).findFirst();
-                        if (value.isPresent()) {
-                            try {
-                                String findStr = value.get().getOut()[2].getValue();
-                                return new BigDecimal(findStr.substring(findStr.indexOf("=") + 1)).doubleValue();
-                            } catch (NumberFormatException ex) {
-                                return 0;
-                            }
-                        } else {
-                            return 0;
-                        }
-                    }).sum();
-                    result += "; Σ" + getSumNamePrefix(name) + "обр=" + new BigDecimal(test).setScale(1, RoundingMode.HALF_EVEN);
-                } else {
-                    result += "; Σ" + getSumNamePrefix(name) + "обр=" + "н/д";
-                }
-
-                return result;
-            } else {
-                return "";
-            }
-        }).collect(Collectors.toList());
-    }
-
-    private String getSumNamePrefix(String name) {
-        switch (name) {
-            case CO:
-            case VENT: return "G";
-            case GVS: return "V";
-            default: return "";
-        }
-    }
-
     private void initConnections(Element left, Element right, GraphElement el, DefaultDiagramModel model) {
         for (int i = 0; i < el.getConnectors().size(); i++) {
             left.addEndPoint(new BlankEndPoint(EndPointAnchor.CONTINUOUS_RIGHT));
@@ -415,16 +341,16 @@ public class GraphMBean implements Serializable {
     }
 
     private String getColor(String name) {
-        if (name.matches(TC + ".*")) {
+        if (name.matches(Graphs.TC + ".*")) {
             return "#FF0000";
         } else {
-            if (name.matches(CO + ".*")) {
+            if (name.matches(Graphs.CO + ".*")) {
                 return "#ff7f00";
             } else {
-                if (name.matches(GVS + ".*")) {
+                if (name.matches(Graphs.GVS + ".*")) {
                     return "#00FF00";
                 } else {
-                    if (name.matches(VENT + ".*")) {
+                    if (name.matches(Graphs.VENT + ".*")) {
                         return "#FFFF00";
                     } else {
                         return "#404a4e";
@@ -518,17 +444,18 @@ public class GraphMBean implements Serializable {
     }
 
     private void addStyle(GraphElement element, String direction, String graph) {
-        addStyle(element, direction, graph, 0);
+        addStyle(element, direction, graph, new ArrayList<>());
     }
 
-    private void addStyle(GraphElement element, String direction, String graph, int increment) {
+    private void addStyle(GraphElement element, String direction, String graph, List<Integer> increment) {
         int size = element.getConnectors().size();
         if (!checkStyleList.contains(size + direction + graph)) {
             checkStyleList.add(size + direction + graph);
 
             for (int i = 0; i < size; i++) {
+                int inc = (increment.size() > i) ? increment.get(i) : 0;
                 double y = (double) (2 * i + 1) * (BLOCK_HEIGHT * size + 2) / (size * 2 + 1) - 35.2 +
-                        (double) (BLOCK_HEIGHT * size + 2) / (2 * (size * 2 + 1)) + increment;
+                        (double) (BLOCK_HEIGHT * size + 2) / (2 * (size * 2 + 1)) + inc;
 
                 styles.append(".text")
                         .append(graph)
@@ -546,13 +473,13 @@ public class GraphMBean implements Serializable {
 
     private void checkVisible(GraphElement graphElement) {
         graphElement.getConnectors().forEach(el -> {
-            if (!isVisibleGvs && el.getName().matches(GVS + ".*")) {
+            if (!isVisibleGvs && el.getName().matches(Graphs.GVS + ".*")) {
                 isVisibleGvs = true;
             }
-            if (!isVisibleCo && el.getName().matches(CO + ".*")) {
+            if (!isVisibleCo && el.getName().matches(Graphs.CO + ".*")) {
                 isVisibleCo = true;
             }
-            if (!isVisibleVent && el.getName().matches(VENT + ".*")) {
+            if (!isVisibleVent && el.getName().matches(Graphs.VENT + ".*")) {
                 isVisibleVent = true;
             }
         });
