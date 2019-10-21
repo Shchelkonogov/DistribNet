@@ -150,3 +150,11 @@ span[class ^= 'right'] {
 .detail {
     padding-left: 20px;
 }
+
+.c1 {
+    width: 10%;
+}
+
+.c2 {
+    width: 80%;
+}
