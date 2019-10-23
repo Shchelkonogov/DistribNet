@@ -1,6 +1,7 @@
 package ru.tecon.dNet.mBean;
 
 import org.primefaces.PrimeFaces;
+import org.primefaces.component.selectoneradio.SelectOneRadio;
 import org.primefaces.model.diagram.Connection;
 import org.primefaces.model.diagram.DefaultDiagramModel;
 import org.primefaces.model.diagram.Element;
@@ -21,6 +22,7 @@ import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
+import javax.faces.event.AjaxBehaviorEvent;
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -70,7 +72,11 @@ public class GraphMBean implements Serializable {
 
     private String error;
 
+    //Данные связанные с проблемами
     private Map<String, List<Problem>> problems = new HashMap<>();
+    private List<String> displayProblems = new ArrayList<>();
+    private Map<Integer, String> problemDesc = new HashMap<>();
+    private String selectProblemColor;
 
     private List<Integer> consumersId = new ArrayList<>();
 
@@ -116,6 +122,10 @@ public class GraphMBean implements Serializable {
             }
 
             bean.getProblems(problems, object, date);
+            //Заполняем массив отображаемых проблем
+            problems.forEach((key, value) -> value.forEach(v -> {
+                if (v.isDisplay()) displayProblems.add(key + ":" + v.getName());
+            }));
         } else {
             styles = new StringBuilder();
             checkStyleList.clear();
@@ -230,8 +240,7 @@ public class GraphMBean implements Serializable {
 
         //Создаем элемент и связь для входных данных в источник
         Element initElement = new Element(
-                new DiagramElement(init.getConnectors().get(0).getName(), null, null),
-                "1em", "0em");
+                new DiagramElement(init.getConnectors().get(0).getName()), "1em", "0em");
         initElement.addEndPoint(new BlankEndPoint(EndPointAnchor.BOTTOM_LEFT));
         initElement.addEndPoint(new BlankEndPoint(EndPointAnchor.BOTTOM_RIGHT));
         initElement.setStyleClass("init-node");
@@ -262,7 +271,7 @@ public class GraphMBean implements Serializable {
             Element right = new Element(
                     new DiagramElement(el.getName(),
                             el.getConnectors().stream().map(Connector::getName).collect(Collectors.toList()),
-                            "left"),
+                            "left", el.getObjectId(), problemDesc.get(el.getObjectId())),
                     "24em", yPos + "px");
             right.setDraggable(false);
             right.setId("id" + yPos + "-objectIdRight" + index);
@@ -527,6 +536,39 @@ public class GraphMBean implements Serializable {
         }
     }
 
+    /**
+     * Метод ajax обработчик изменений в selectOneRadio
+     * @param event событие
+     */
+    public void addProblemMessage(AjaxBehaviorEvent event) {
+        SelectOneRadio test = (SelectOneRadio) event.getSource();
+
+        //Определяем key и value для map проблем (map:value) и затем получаем id проблемы
+        String key = ((String) test.getValue()).split(":")[0];
+        String value = ((String) test.getValue()).split(":")[1];
+        Integer problemId = Objects.requireNonNull(problems.get(key).stream()
+                .filter(e -> e.getName().equals(value))
+                .findFirst()
+                .orElse(null)).getProblemId();
+
+        //Достаем из правой диаграмы id объектов
+        List<Integer> ids = diagramModelRight.getElements().stream()
+                .filter(element -> element.getData() instanceof DiagramElement)
+                .map(element -> ((DiagramElement) element.getData()).getObjectId())
+                .collect(Collectors.toList());
+
+        problemDesc.clear();
+
+        bean.getProblemDescription(problemId, ids, localDate.format(dtf), problemDesc);
+
+        selectProblemColor = Objects.requireNonNull(problems.get(key).stream()
+                .filter(problem -> problem.getName().equals(value))
+                .findFirst()
+                .orElse(null)).getColor();
+
+        init();
+    }
+
     public ConnectorValue[] getProducerIndex() {
         return producerIndex;
     }
@@ -635,5 +677,17 @@ public class GraphMBean implements Serializable {
 
     public List<Problem> getProblemsValues(String key) {
         return problems.get(key);
+    }
+
+    public List<String> getDisplayProblems() {
+        return displayProblems;
+    }
+
+    public Integer getProblemIndex(String key, String value) {
+        return displayProblems.indexOf(key + ":" + value);
+    }
+
+    public String getSelectProblemColor() {
+        return selectProblemColor;
     }
 }

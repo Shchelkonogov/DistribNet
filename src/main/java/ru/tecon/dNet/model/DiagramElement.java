@@ -10,15 +10,24 @@ public class DiagramElement implements Serializable {
     private List<String> values;
     private List<String> sumValues;
     private String className;
+    private Integer objectId;
+    private String problemDesc;
 
-    public DiagramElement(String name, List<String> values, String className) {
+    public DiagramElement(String name) {
         this.name = name;
+    }
+
+    public DiagramElement(String name, List<String> values, String className, Integer objectId,
+                          String problemDesc) {
+        this(name);
         this.values = values;
         this.className = className;
+        this.objectId = objectId;
+        this.problemDesc = problemDesc;
     }
 
     public DiagramElement(String name, List<String> values, List<String> sumValues, String className) {
-        this(name, values, className);
+        this(name, values, className, null, null);
         this.sumValues = sumValues;
     }
 
@@ -42,6 +51,14 @@ public class DiagramElement implements Serializable {
         return sumValues;
     }
 
+    public Integer getObjectId() {
+        return objectId;
+    }
+
+    public String getProblemDesc() {
+        return problemDesc;
+    }
+
     @Override
     public String toString() {
         return new StringJoiner(", ", DiagramElement.class.getSimpleName() + "[", "]")
@@ -49,6 +66,8 @@ public class DiagramElement implements Serializable {
                 .add("values=" + values)
                 .add("sumValues=" + sumValues)
                 .add("className='" + className + "'")
+                .add("objectId=" + objectId)
+                .add("problemDesc='" + problemDesc + "'")
                 .toString();
     }
 }

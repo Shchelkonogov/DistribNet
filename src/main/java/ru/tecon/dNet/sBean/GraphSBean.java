@@ -102,7 +102,8 @@ public class GraphSBean {
             "case when p30 = 1 then ' 30' end || " +
             "case when p31 = 1 then ' 31' end) as ids " +
             "from table(dsp_0090t.sel_matrix_ctp_detail(?, to_date(?, 'dd-mm-yyyy')))";
-    private static final String SQL_PROBLEMS = "select techproc, problem_name, color from dz_rs_problem where problem_id in (?)";
+    private static final String SQL_PROBLEMS = "select techproc, problem_name, color, visible, problem_id from dz_rs_problem where problem_id in (?)";
+    private static final String SQL_PROBLEMS_DESCRIPTION = "select mnemo.get_Rnet_Problem_data(?, ?, to_date(?, 'dd-mm-yyyy')) from dual";
 
     @Resource(name = "jdbc/DataSource")
     private DataSource ds;
@@ -360,10 +361,12 @@ public class GraphSBean {
                     res = stmProblems.executeQuery();
                     while (res.next()) {
                         if (problems.containsKey(res.getString(1))) {
-                            problems.get(res.getString(1)).add(new Problem(res.getString(2), res.getString(3)));
+                            problems.get(res.getString(1)).add(new Problem(res.getString(2), res.getString(3),
+                                    res.getBoolean(4), res.getInt(5)));
                         } else {
                             problems.put(res.getString(1), new ArrayList<>(Collections.singletonList(
-                                    new Problem(res.getString(2), res.getString(3)))));
+                                    new Problem(res.getString(2), res.getString(3),
+                                            res.getBoolean(4), res.getInt(5)))));
                         }
                     }
                 } catch (SQLException e) {
@@ -373,6 +376,35 @@ public class GraphSBean {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Метод возвращает описание проблем для каждого потребителя
+     * @param problemId id проблемы
+     * @param ids id потребителей
+     * @param date дата в формате dd-MM-yyyy за которую смотрятся данные
+     * @param result результат выполнения метода
+     */
+    public void getProblemDescription(Integer problemId, List<Integer> ids, String date, Map<Integer, String> result) {
+        LOG.info("getProblemDescription: start");
+        try (Connection connect = ds.getConnection();
+                PreparedStatement stm = connect.prepareStatement(SQL_PROBLEMS_DESCRIPTION)) {
+            ResultSet res;
+
+            for (Integer id: ids) {
+                stm.setInt(1, id);
+                stm.setInt(2, problemId);
+                stm.setString(3, date);
+
+                res = stm.executeQuery();
+                if (res.next() && res.getString(1) != null) {
+                    result.put(id, res.getString(1));
+                }
+            }
+        } catch (SQLException e) {
+            LOG.warning("getProblemDescription: error " + e.getMessage());
+        }
+        LOG.info("getProblemDescription: end");
     }
 
     /**

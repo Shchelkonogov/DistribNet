@@ -90,19 +90,25 @@
                                   value="#{graph.temperature}" />
                 </h:form>
 
-                <h:form>
+                <h:form id="settingsPanel">
+                    <p:selectOneRadio id="customRadioProblems" layout="custom">
+                        <f:selectItems value="#{graph.displayProblems}" />
+                        <p:ajax listener="#{graph.addProblemMessage}" update="left right css-style tooltip-form" />
+                    </p:selectOneRadio>
+
                     <div style="height: 200px; width: 400px; margin: 0 auto; overflow: auto;">
                         <p:repeat value="#{graph.problemsName}" var="pr">
                             <h:panelGrid columns="2" columnClasses="logo, detail" style="width: 100%;" >
                                     <h:outputText style="font-size: 20px;" value="#{pr}" />
                                 <p:outputPanel>
                                     <p:repeat value="#{graph.getProblemsValues(pr)}" var="prName" varStatus="prNameStatus">
-                                        <h:panelGrid columns="3" columnClasses="c1,c2,c1">
+                                        <h:panelGrid columns="3" columnClasses="c1,c2,c1" style="width: 100%;">
                                             <h:outputText style="font-size: 16px; background-color: #{prName.color};"
                                                           value="#{prNameStatus.index + 1}." />
                                             <h:outputText style="font-size: 16px;"
                                                           value="#{prName.name}" />
-                                            <p:toggleSwitch value="true" />
+                                            <p:radioButton rendered="#{prName.display}" for="settingsPanel:customRadioProblems"
+                                                           itemIndex="#{graph.getProblemIndex(pr, prName.name)}" />
                                         </h:panelGrid>
                                     </p:repeat>
                                 </p:outputPanel>
@@ -166,6 +172,11 @@
                                               value="#{value}"
                                               style="position: absolute;"/>
                             </p:repeat>
+                            <h:outputText style="display: block; margin-top: -1em; margin-left: 10em;
+                                                height: 10px; border-radius: 5px; background-color: #{graph.selectProblemColor};"
+                                          rendered="#{el.problemDesc != null}" />
+                            <h:outputText style="display: block; margin-top: -1em; margin-left: 10em;"
+                                          rendered="#{el.problemDesc != null}" value="#{el.problemDesc}" />
                         </f:facet>
                     </p:diagram>
                 </h:form>
