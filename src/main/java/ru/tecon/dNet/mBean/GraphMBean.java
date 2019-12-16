@@ -146,8 +146,8 @@ public class GraphMBean implements Serializable {
             producer.getChildren().forEach(el -> el.getConnectors().removeIf(f -> f.getName().matches(Graphs.CO + ".*")));
         }
         if (!vent) {
-            producer.getConnectors().removeIf(el -> el.getName().matches(Graphs.TC + ".*"));
-            producer.getChildren().forEach(el -> el.getConnectors().removeIf(f -> f.getName().matches(Graphs.TC + ".*")));
+            producer.getConnectors().removeIf(el -> el.getName().matches(Graphs.VENT + ".*"));
+            producer.getChildren().forEach(el -> el.getConnectors().removeIf(f -> f.getName().matches(Graphs.VENT + ".*")));
         }
 
         //Убираем элементы из графа если нету связей
