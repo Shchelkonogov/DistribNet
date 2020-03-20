@@ -12,6 +12,7 @@ public class Connector implements Serializable {
     private ConnectorValue[] in = new ConnectorValue[3];
     private ConnectorValue[] out = new ConnectorValue[3];
     private ConnectorValue[] center = new ConnectorValue[5];
+    private int connectionAggregateId;
 
     public Connector(String name) {
         this.name = name;
@@ -49,6 +50,14 @@ public class Connector implements Serializable {
         this.temperature = temperature;
     }
 
+    public int getConnectionAggregateId() {
+        return connectionAggregateId;
+    }
+
+    public void setConnectionAggregateId(int connectionAggregateId) {
+        this.connectionAggregateId = connectionAggregateId;
+    }
+
     @Override
     public String toString() {
         return new StringJoiner(", ", Connector.class.getSimpleName() + "[", "]")
@@ -58,6 +67,7 @@ public class Connector implements Serializable {
                 .add("in=" + Arrays.toString(in))
                 .add("out=" + Arrays.toString(out))
                 .add("center=" + Arrays.toString(center))
+                .add("connectionAggregateId=" + connectionAggregateId)
                 .toString();
     }
 }

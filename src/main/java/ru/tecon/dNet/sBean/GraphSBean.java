@@ -62,7 +62,7 @@ public class GraphSBean {
             "nvl2(n24, n23||'='||n24, null) as k0, n25 as k0_color, " +
             "nvl2(n27, n26||'='||n27, null) as k1, n28 as k1_color, " +
             "nvl2(n30, n29||'='||n30, null) as k2, n31 as k2_color, " +
-            "n21 as energy " +
+            "n21 as energy, n42 as connectionAggregateId " +
             "from table (mnemo.get_Rnet_UU_hist_data(?, ?, to_date(?, 'dd-mm-yyyy')))";
     private static final String SQL_REDIRECT = "select mnemo_ip, mnemo_port from dz_sys_param";
     private static final String SQL_CHECK_SUMMER = "select decode(season, 'LETO', '1', '0') " +
@@ -84,11 +84,11 @@ public class GraphSBean {
             "case when p12 = 1 then ' 12' end || " +
             "case when p13 = 1 then ' 13' end || " +
             "case when p14 = 1 then ' 14' end || " +
-            "case when p15 = 1 then ' 15' end || " +
-            "case when p16 = 1 then ' 16' end || " +
-            "case when p17 = 1 then ' 17' end || " +
-            "case when p18 = 1 then ' 18' end || " +
-            "case when p19 = 1 then ' 19' end || " +
+//            "case when p15 = 1 then ' 15' end || " +
+//            "case when p16 = 1 then ' 16' end || " +
+//            "case when p17 = 1 then ' 17' end || " +
+//            "case when p18 = 1 then ' 18' end || " +
+//            "case when p19 = 1 then ' 19' end || " +
             "case when p20 = 1 then ' 20' end || " +
             "case when p21 = 1 then ' 21' end || " +
             "case when p22 = 1 then ' 22' end || " +
@@ -320,6 +320,7 @@ public class GraphSBean {
             if (res.getString(12) != null) {
                 connector.getOut()[2] = new ConnectorValue(res.getString(12), res.getString(13));
             }
+            connector.setConnectionAggregateId(res.getInt("connectionAggregateId"));
             loadCoefficient(connector, res, 0);
             loadCoefficient(connector, res, 1);
             loadCoefficient(connector, res, 2);

@@ -97,20 +97,20 @@ public class GraphElement implements Serializable {
         return getConnectors().stream().map(e -> {
             if (e.getName() == null) return null;
 
-            String name = e.getName().contains(" ") ? e.getName().substring(0, e.getName().indexOf(" ")) : e.getName();
+            int id = e.getConnectionAggregateId();
 
             boolean isData = getChildren().stream()
                     .anyMatch(v -> v.getConnectors().stream()
-                            .anyMatch(f -> f.getName().contains(name) && f.getEnergy() != null));
+                            .anyMatch(f -> (f.getConnectionAggregateId() == id) && (f.getEnergy() != null)));
 
             if (!isData) return e.getName();
 
-            double energySum = getChildren().stream().mapToDouble(v ->
-                            v.getConnectors().stream()
-                                    .filter(f -> f.getName().contains(name) && (f.getEnergy() != null))
-                                    .findFirst()
-                                    .map(connector -> new BigDecimal(connector.getEnergy()).doubleValue())
-                                    .orElse(0.0))
+            double energySum = getChildren().stream()
+                    .mapToDouble(v -> v.getConnectors().stream()
+                            .filter(f -> (f.getConnectionAggregateId() == id) && (f.getEnergy() != null))
+                            .findFirst()
+                            .map(connector -> new BigDecimal(connector.getEnergy()).doubleValue())
+                            .orElse(0.0))
                     .sum();
 
             return e.getName() + " ΣQ=" + new BigDecimal(energySum).setScale(1, RoundingMode.HALF_EVEN);
@@ -125,23 +125,24 @@ public class GraphElement implements Serializable {
         return getConnectors().stream().map(e -> {
             if (e.getName() == null) return null;
 
+            int id = e.getConnectionAggregateId();
             String name = e.getName().contains(" ") ? e.getName().substring(0, e.getName().indexOf(" ")) : e.getName();
             String result = "";
 
             boolean isData = getChildren().stream()
                     .anyMatch(v -> v.getConnectors().stream()
-                            .anyMatch(f -> f.getName().contains(name) && (f.getIn()[2] != null)));
+                            .anyMatch(f -> (f.getConnectionAggregateId() == id) && (f.getIn()[2] != null)));
 
             if (isData) {
-                double energySum = getChildren().stream().mapToDouble(v ->
-                                v.getConnectors().stream()
-                                        .filter(f -> f.getName().contains(name) && (f.getIn()[2] != null))
-                                        .findFirst()
-                                        .map(connector -> {
-                                            String value = connector.getIn()[2].getValue();
-                                            return new BigDecimal(value.substring(value.indexOf("=") + 1)).doubleValue();
-                                        })
-                                        .orElse(0.0))
+                double energySum = getChildren().stream()
+                        .mapToDouble(v -> v.getConnectors().stream()
+                                .filter(f -> (f.getConnectionAggregateId() == id) && (f.getIn()[2] != null))
+                                .findFirst()
+                                .map(connector -> {
+                                    String value = connector.getIn()[2].getValue();
+                                    return new BigDecimal(value.substring(value.indexOf("=") + 1)).doubleValue();
+                                })
+                                .orElse(0.0))
                         .sum();
 
                 result += "Σ" + Graphs.getSumNamePrefix(name) + "под=" + new BigDecimal(energySum).setScale(1, RoundingMode.HALF_EVEN) + " ";
@@ -149,18 +150,18 @@ public class GraphElement implements Serializable {
 
             isData = getChildren().stream()
                     .anyMatch(v -> v.getConnectors().stream()
-                            .anyMatch(f -> f.getName().contains(name) && (f.getOut()[2] != null)));
+                            .anyMatch(f -> (f.getConnectionAggregateId() == id) && (f.getOut()[2] != null)));
 
             if (isData) {
-                double energySum = getChildren().stream().mapToDouble(v ->
-                                v.getConnectors().stream()
-                                        .filter(f -> f.getName().contains(name) && (f.getOut()[2] != null))
-                                        .findFirst()
-                                        .map(connector -> {
-                                            String value = connector.getOut()[2].getValue();
-                                            return new BigDecimal(value.substring(value.indexOf("=") + 1)).doubleValue();
-                                        })
-                                        .orElse(0.0))
+                double energySum = getChildren().stream()
+                        .mapToDouble(v -> v.getConnectors().stream()
+                                .filter(f -> (f.getConnectionAggregateId() == id) && (f.getOut()[2] != null))
+                                .findFirst()
+                                .map(connector -> {
+                                    String value = connector.getOut()[2].getValue();
+                                    return new BigDecimal(value.substring(value.indexOf("=") + 1)).doubleValue();
+                                })
+                                .orElse(0.0))
                         .sum();
 
                 result += "Σ" + Graphs.getSumNamePrefix(name) + "обр=" + new BigDecimal(energySum).setScale(1, RoundingMode.HALF_EVEN);
@@ -180,6 +181,7 @@ public class GraphElement implements Serializable {
                 .add("connectors=" + connectors)
                 .add("children=" + children)
                 .add("date='" + date + "'")
+                .add("trimSize=" + trimSize)
                 .toString();
     }
 }

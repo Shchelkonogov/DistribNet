@@ -30,6 +30,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @ManagedBean(name = "graph")
@@ -77,6 +79,7 @@ public class GraphMBean implements Serializable {
     private List<String> displayProblems = new ArrayList<>();
     private Map<Integer, String> problemDesc = new HashMap<>();
     private String selectProblemColor;
+    private static final List<String> COMPARE_LIST = new ArrayList<>(Arrays.asList("ГВС", "ЦО"));
 
     private List<Integer> consumersId = new ArrayList<>();
 
@@ -235,7 +238,8 @@ public class GraphMBean implements Serializable {
                 .append("px;} ")
                 .append("#left\\:diaLeft-idInvisible {visibility: hidden; width: 1em;}");
 
-        initConnections(prodLeft, prodRight, producer, diagramModelLeft);
+        initConnections(prodLeft, prodRight, producer, diagramModelLeft,
+                producer.getConnectors().stream().map(Connector::getName).collect(Collectors.toList()));
         tooltips.add(new Tooltip("left\\:diaLeft-idProd-objectIdLeft", producer.getTooltip()));
 
         //Создаем элемент и связь для входных данных в источник
@@ -296,7 +300,9 @@ public class GraphMBean implements Serializable {
                     .append("invisible")
                     .append("{visibility: hidden; width: 1em;}");
 
-            initConnections(left, right, el, diagramModelRight);
+            initConnections(left, right, el, diagramModelRight,
+                    el.getConnectors().stream().map(s -> Objects.requireNonNull(producer.getConnectors().stream().filter(f -> f.getConnectionAggregateId() == s.getConnectionAggregateId()).findFirst().orElse(null)).getName())
+                            .collect(Collectors.toList()));
             tooltips.add(new Tooltip("right\\:diaRight-id" + yPos + "-objectIdRight" + index, el.getTooltip()));
 
             yPos += 20 + (BLOCK_HEIGHT * el.getConnectors().size());
@@ -323,7 +329,7 @@ public class GraphMBean implements Serializable {
                 .append("#right\\:diaRight-idDownWrapper{height: 1em; width: 1em; visibility: hidden;}");
     }
 
-    private void initConnections(Element left, Element right, GraphElement el, DefaultDiagramModel model) {
+    private void initConnections(Element left, Element right, GraphElement el, DefaultDiagramModel model, List<String> namesForGetColor) {
         for (int i = 0; i < el.getConnectors().size(); i++) {
             left.addEndPoint(new BlankEndPoint(EndPointAnchor.CONTINUOUS_RIGHT));
             left.addEndPoint(new BlankEndPoint(EndPointAnchor.CONTINUOUS_RIGHT));
@@ -336,7 +342,7 @@ public class GraphMBean implements Serializable {
             model.connect(createConnection(
                     left.getEndPoints().get(3 * i),
                     right.getEndPoints().get(3 * i),
-                    el.getConnectors().get(i).getIn(), false, false, getColor(el.getConnectors().get(i).getName())));
+                    el.getConnectors().get(i).getIn(), false, false, getColor(namesForGetColor.get(i))));
 
             model.connect(createConnection(
                     left.getEndPoints().get(3 * i + 1),
@@ -345,22 +351,45 @@ public class GraphMBean implements Serializable {
             model.connect(createConnection(
                     left.getEndPoints().get(3 * i + 2),
                     right.getEndPoints().get(3 * i + 2),
-                    el.getConnectors().get(i).getOut(), true, false, getColor(el.getConnectors().get(i).getName())));
+                    el.getConnectors().get(i).getOut(), true, false, getColor(namesForGetColor.get(i))));
         }
     }
 
     private String getColor(String name) {
+        int index = 0;
+        Pattern pattern = Pattern.compile(" \\d ");
+        Matcher matcher = pattern.matcher(name);
+        if (matcher.find()) {
+            index = Integer.parseInt(matcher.group().trim());
+        }
+
         if (name.matches(Graphs.TC + ".*")) {
             return "#FF0000";
         } else {
             if (name.matches(Graphs.CO + ".*")) {
-                return "#ff7f00";
+                switch (index) {
+                    case 2: return "#556832";
+                    case 3: return "#c71585";
+                    case 4: return "#722f37";
+                    case 0:
+                    default: return "#ff7f00";
+                }
             } else {
                 if (name.matches(Graphs.GVS + ".*")) {
-                    return "#00FF00";
+                    switch (index) {
+                        case 2: return "#0095b6";
+                        case 3: return "#310062";
+                        case 4: return "#e34234";
+                        case 0:
+                        default: return "#00ff00";
+                    }
                 } else {
                     if (name.matches(Graphs.VENT + ".*")) {
-                        return "#FFFF00";
+                        switch (index) {
+                            case 2: return "#003153";
+                            case 0:
+                            default: return "#ffff00";
+                        }
                     } else {
                         return "#404a4e";
                     }
@@ -672,7 +701,9 @@ public class GraphMBean implements Serializable {
     }
 
     public List<String> getProblemsName() {
-        return new ArrayList<>(problems.keySet());
+        List<String> names = new ArrayList<>(problems.keySet());
+        names.sort(Comparator.comparingInt(COMPARE_LIST::indexOf));
+        return names;
     }
 
     public List<Problem> getProblemsValues(String key) {
