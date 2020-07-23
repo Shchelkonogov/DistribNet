@@ -682,6 +682,10 @@ public class GraphMBean implements Serializable {
         return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
     }
 
+    public String getDate() {
+        return localDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+    }
+
     public void setCalendarDate(Date date) {
         localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         try {

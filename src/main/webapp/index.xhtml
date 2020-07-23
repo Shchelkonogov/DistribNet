@@ -52,7 +52,7 @@
     <table class="table-style" cellspacing="0" cellpadding="0">
         <tr>
             <td valign="top" style="width: 48.1em; min-width: 48.1em">
-                <h:form id="left" style="height: calc(100% - 255px);">
+                <h:form id="left" style="height: calc(100% - 355px);">
                     <p:diagram id="diaLeft"
                                value="#{graph.diagramModelLeft}"
                                style="min-height: 400px; height: 100%; overflow: hidden;"
@@ -96,7 +96,7 @@
                         <p:ajax listener="#{graph.addProblemMessage}" update="left right css-style tooltip-form" />
                     </p:selectOneRadio>
 
-                    <div style="height: 200px; width: 400px; margin: 0 auto; overflow: auto;">
+                    <div style="height: 300px; width: 400px; margin: 0 auto; overflow: auto;">
                         <p:repeat value="#{graph.problemsName}" var="pr">
                             <h:panelGrid columns="2" columnClasses="logo, detail" style="width: 100%;" >
                                     <h:outputText style="font-size: 20px;" value="#{pr}" />
@@ -141,6 +141,10 @@
                                                        onIcon="pi pi-check" offIcon="pi pi-times">
                                     <p:ajax update="left right css-style tooltip-form error-form" listener="#{graph.changeButton}"/>
                                 </p:selectBooleanButton>
+                            </td>
+                            <td style="width: 50px; text-align: left;">
+                                <p:button onclick="window.open('load?object=#{graph.object}&amp;date=#{graph.date}')"
+                                          icon="pi pi-save" target="_blank"/>
                             </td>
                             <td style="width: 35px; text-align: right;">
                                 <p:button outcome="index.xhtml?object=#{graph.object}&amp;date=#{graph.beforeDate}"

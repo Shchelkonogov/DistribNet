@@ -5,4 +5,7 @@
         <res-ref-name>jdbc/DataSource</res-ref-name>
         <jndi-name>jdbc/OracleDataSource</jndi-name>
     </resource-description>
+    <container-descriptor>
+        <prefer-web-inf-classes>true</prefer-web-inf-classes>
+    </container-descriptor>
 </weblogic-web-app>
