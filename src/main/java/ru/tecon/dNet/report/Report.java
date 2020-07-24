@@ -135,7 +135,7 @@ public class Report {
 
                 for (int j = 0; j < objectNames.size(); j++) {
                     createStyledCell(row, 4 + (j * 2), outParams.get(i).getName(), borderStyle);
-                    String value = loader.getValue(objectNames.get(j).getId(), outParams.get(i).getId(),
+                    String value = loader.getValue(object, objectNames.get(j).getId(), outParams.get(i).getId(),
                             outParams.get(i).getStatId(), date);
                     createStyledCell(row, 5 + (j * 2), value, borderStyle);
                     if (outParams.get(i).getName().startsWith("Q")) {

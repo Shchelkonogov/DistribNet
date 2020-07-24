@@ -47,7 +47,7 @@ public class Test implements ReportBeanLocal {
     }
 
     @Override
-    public String getValue(int object, int id, int statId, String date) {
+    public String getValue(int parentObjectId, int object, int id, int statId, String date) {
         return String.valueOf(Math.random());
     }
 }

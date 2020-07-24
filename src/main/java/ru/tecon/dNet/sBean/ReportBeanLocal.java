@@ -72,11 +72,12 @@ public interface ReportBeanLocal {
 
     /**
      * Получние значений по парамтру
+     * @param parentObjectId id объекта цтп
      * @param object id объекта
      * @param id id параметра
      * @param statId id стат агрегата
      * @param date дата в формате dd.MM.yyyy
      * @return значение параметра
      */
-    String getValue(int object, int id, int statId, String date);
+    String getValue(int parentObjectId, int object, int id, int statId, String date);
 }

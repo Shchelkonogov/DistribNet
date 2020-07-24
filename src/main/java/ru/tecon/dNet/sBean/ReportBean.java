@@ -44,6 +44,7 @@ public class ReportBean implements ReportBeanLocal {
     private static final String SELECT_IN_PARAMETERS = "select * from table (mnemo.get_Rnet_CTP_otch_data(?, to_date(?, 'dd.mm.yyyy')))";
     private static final String SELECT_OUT_PARAMETERS ="select * from table (mnemo.get_Rnet_CTP_out_otch_data(?, to_date(?,'dd.mm.yyyy')))";
 
+    private static final String SELECT_VALUE_NEW = "select mnemo.get_Rnet_UU_otch_data (?, ?, ?, ?, to_date(?, 'dd.mm.yyyy')) from dual";
     private static final String SELECT_VALUE = "select par_value from dz_hist_day_data " +
             "where obj_id = ? and par_id = ? and stat_aggr = ? and time_stamp = to_date(?, 'dd.mm.yyyy')";
 
@@ -103,13 +104,14 @@ public class ReportBean implements ReportBeanLocal {
     }
 
     @Override
-    public String getValue(int object, int id, int statId, String date) {
+    public String getValue(int parentObjectId, int object, int id, int statId, String date) {
         try (Connection connection = ds.getConnection();
-             PreparedStatement stm = connection.prepareStatement(SELECT_VALUE)) {
-            stm.setInt(1, object);
-            stm.setInt(2, id);
-            stm.setInt(3, statId);
-            stm.setString(4, date);
+             PreparedStatement stm = connection.prepareStatement(SELECT_VALUE_NEW)) {
+            stm.setInt(1, parentObjectId);
+            stm.setInt(2, object);
+            stm.setInt(3, id);
+            stm.setInt(4, statId);
+            stm.setString(5, date);
             ResultSet res = stm.executeQuery();
 
             if (res.next()) {
