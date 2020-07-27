@@ -360,7 +360,7 @@ public class GraphMBean implements Serializable {
         Pattern pattern = Pattern.compile("(" + Graphs.TC + "|" + Graphs.CO + "|" + Graphs.GVS + "|" + Graphs.VENT + ") (\\d)");
         Matcher matcher = pattern.matcher(name);
         if (matcher.find()) {
-            index = Integer.parseInt(matcher.group().trim());
+            index = Integer.parseInt(matcher.group(2));
         }
 
         if (name.matches(Graphs.TC + ".*")) {
