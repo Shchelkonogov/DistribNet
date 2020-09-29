@@ -32,6 +32,7 @@ public class ReportBean implements ReportBeanLocal {
     private static final String SELECT_COMPANY = "select get_obj_pred(?) from dual";
     private static final String SELECT_SOURCE = "select val from obj_object_properties " +
             "where obj_type_id = 1 and prop_id = 14 and obj_id = ?";
+    private static final String SELECT_ADDRESS = "select get_obj_address(?) from dual";
 
     private static final String SELECT_CONSUMERS = "select distinct(obj_id2) as obj_id, " +
             "(select obj_name from obj_object where obj_id = obj_id2) as obj_name " +
@@ -44,8 +45,12 @@ public class ReportBean implements ReportBeanLocal {
     private static final String SELECT_IN_PARAMETERS = "select * from table (mnemo.get_Rnet_CTP_otch_data(?, to_date(?, 'dd.mm.yyyy')))";
     private static final String SELECT_OUT_PARAMETERS ="select * from table (mnemo.get_Rnet_CTP_out_otch_data(?, to_date(?,'dd.mm.yyyy')))";
 
-    private static final String SELECT_VALUE = "select par_value from dz_hist_day_data " +
-            "where obj_id = ? and par_id = ? and stat_aggr = ? and time_stamp = to_date(?, 'dd.mm.yyyy')";
+    private static final String SELECT_VALUE = "select mnemo.get_Rnet_UU_otch_data(?, ?, ?, ?, to_date(?, 'dd.mm.yyyy')) from dual";
+
+    private static final String SELECT_IN_PARAMETERS_M = "select * from table (mnemo.get_Rnet_CTP_otch_data_m(?, to_date(?, 'mm.yyyy')))";
+    private static final String SELECT_OUT_PARAMETERS_M ="select * from table (mnemo.get_Rnet_CTP_out_otch_data_m(?, to_date(?,'mm.yyyy')))";
+
+    private static final String SELECT_VALUE_M = "select mnemo.get_Rnet_UU_otch_data_m(?, ?, ?, ?, to_date(?, 'mm.yyyy')) from dual";
 
     @Resource(name = "jdbc/DataSource")
     private DataSource ds;
@@ -76,6 +81,11 @@ public class ReportBean implements ReportBeanLocal {
     }
 
     @Override
+    public String getAddress(int objectID) {
+        return loadData(SELECT_ADDRESS, objectID);
+    }
+
+    @Override
     public List<ConsumerModel> getObjectNames(int object) {
         List<ConsumerModel> result = new ArrayList<>();
         try (Connection connection = ds.getConnection();
@@ -94,23 +104,55 @@ public class ReportBean implements ReportBeanLocal {
 
     @Override
     public List<DataModel> getInParameters(int object, String date) {
-        return loadParameters(object, date, SELECT_IN_PARAMETERS);
+        if (date.matches("([0-9]{2}\\.){2}([0-9]{4})")) {
+            return loadParameters(object, date, SELECT_IN_PARAMETERS);
+        }
+        if (date.matches("([0-9]{2}\\.)([0-9]{4})")) {
+            return loadParameters(object, date, SELECT_IN_PARAMETERS_M);
+        }
+        return null;
     }
 
     @Override
     public List<DataModel> getOutParameters(int object, String date) {
-        return loadParameters(object, date, SELECT_OUT_PARAMETERS);
+        if (date.matches("([0-9]{2}\\.){2}([0-9]{4})")) {
+            return loadParameters(object, date, SELECT_OUT_PARAMETERS);
+        }
+        if (date.matches("([0-9]{2}\\.)([0-9]{4})")) {
+            return loadParameters(object, date, SELECT_OUT_PARAMETERS_M);
+        }
+        return null;
     }
 
     @Override
-    public String getValue(int object, int id, int statId, String date) {
+    public String getValue(int parentID, int object, int id, int statId, String date) {
         try (Connection connection = ds.getConnection();
-             PreparedStatement stm = connection.prepareStatement(SELECT_VALUE)) {
-            stm.setInt(1, object);
-            stm.setInt(2, id);
-            stm.setInt(3, statId);
-            stm.setString(4, date);
-            ResultSet res = stm.executeQuery();
+             PreparedStatement stm = connection.prepareStatement(SELECT_VALUE);
+             PreparedStatement stmM = connection.prepareStatement(SELECT_VALUE_M)) {
+
+            ResultSet res = null;
+
+            if (date.matches("([0-9]{2}\\.){2}([0-9]{4})")) {
+                stm.setInt(1, parentID);
+                stm.setInt(2, object);
+                stm.setInt(3, id);
+                stm.setInt(4, statId);
+                stm.setString(5, date);
+                res = stm.executeQuery();
+            }
+
+            if (date.matches("([0-9]{2}\\.)([0-9]{4})")) {
+                stmM.setInt(1, parentID);
+                stmM.setInt(2, object);
+                stmM.setInt(3, id);
+                stmM.setInt(4, statId);
+                stmM.setString(5, date);
+                res = stmM.executeQuery();
+            }
+
+            if (res == null) {
+                return "";
+            }
 
             if (res.next()) {
                 try {
