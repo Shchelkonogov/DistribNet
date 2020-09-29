@@ -102,7 +102,7 @@ public class GraphMBean implements Serializable {
 
         //Загрузка информации по графу
         if (producerData == null) {
-            object = Integer.valueOf(FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("object"));
+            object = Integer.parseInt(FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("object"));
             String date = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("date");
             localDate = LocalDate.parse(date, dtf);
 
@@ -301,7 +301,7 @@ public class GraphMBean implements Serializable {
                     .append("{visibility: hidden; width: 1em;}");
 
             initConnections(left, right, el, diagramModelRight,
-                    el.getConnectors().stream().map(s -> Objects.requireNonNull(producer.getConnectors().stream().filter(f -> f.getConnectionAggregateId() == s.getConnectionAggregateId()).findFirst().orElse(null)).getName())
+                    el.getConnectors().stream().map(s -> Objects.requireNonNull(producer.getConnectors().stream().filter(f -> f.getConnectionAggregateId() == s.getConnectionAggregateId()).findFirst().orElse(new Connector(""))).getName())
                             .collect(Collectors.toList()));
             tooltips.add(new Tooltip("right\\:diaRight-id" + yPos + "-objectIdRight" + index, el.getTooltip()));
 
@@ -357,10 +357,10 @@ public class GraphMBean implements Serializable {
 
     private String getColor(String name) {
         int index = 0;
-        Pattern pattern = Pattern.compile(" \\d ");
+        Pattern pattern = Pattern.compile("(" + Graphs.TC + "|" + Graphs.CO + "|" + Graphs.GVS + "|" + Graphs.VENT + ") (\\d)");
         Matcher matcher = pattern.matcher(name);
         if (matcher.find()) {
-            index = Integer.parseInt(matcher.group().trim());
+            index = Integer.parseInt(matcher.group(2));
         }
 
         if (name.matches(Graphs.TC + ".*")) {

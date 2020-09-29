@@ -48,13 +48,6 @@ public interface ReportBeanLocal {
     String getSource(int object);
 
     /**
-     * Получение географического адреса объекта
-     * @param objectID id объекта
-     * @return адрес
-     */
-    String getAddress(int objectID);
-
-    /**
      * Получение списка подключенных объектов с их id
      * @param object id объекта
      * @return список подключенных объектов
@@ -79,12 +72,11 @@ public interface ReportBeanLocal {
 
     /**
      * Получние значений по парамтру
-     * @param parentID id цтп
      * @param object id объекта
      * @param id id параметра
      * @param statId id стат агрегата
      * @param date дата в формате dd.MM.yyyy
      * @return значение параметра
      */
-    String getValue(int parentID, int object, int id, int statId, String date);
+    String getValue(int object, int id, int statId, String date);
 }
