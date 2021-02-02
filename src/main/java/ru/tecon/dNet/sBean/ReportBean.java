@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Stateless(name = "report")
@@ -183,7 +184,7 @@ public class ReportBean implements ReportBeanLocal {
                 result.add(new DataModel(res.getString(1), res.getString(4), res.getInt(2), res.getInt(3)));
             }
         } catch (SQLException e) {
-            LOG.warning("error load data select: " + select + " for object: " + object + " date: " + date);
+            LOG.log(Level.WARNING, "error load data select: " + select + " for object: " + object + " date: " + date, e);
         }
         return result;
     }
