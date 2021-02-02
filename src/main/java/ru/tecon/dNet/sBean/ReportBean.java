@@ -159,6 +159,7 @@ public class ReportBean implements ReportBeanLocal {
                 try {
                     return new BigDecimal(res.getString(1).trim()).setScale(2, RoundingMode.HALF_EVEN).toString();
                 } catch (Exception ignore) {
+                    return res.getString(1);
                 }
             }
         } catch (SQLException e) {
