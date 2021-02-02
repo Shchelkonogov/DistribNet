@@ -46,6 +46,7 @@ public class GraphSBean {
             "nvl2(n13, n12||'='||n13, null) as reverse_center, n14 as reverse_center_Color, " +
             "nvl2(n19, n18||'='||n19, null) as reverse_right, n20 as reverse_right_color, " +
             "nvl2(n22, n21||'='||n22, null) as q, " +
+            "nvl2(n44, n43||'='||n44, null) as t, " +
             "nvl2(n25, n24||'='||n25, null) as temperature, n26 as temperature_color, " +
             "nvl2(n28, n27||'='||n28, null) as k0, n29 as k0_color, " +
             "nvl2(n31, n30||'='||n31, null) as k1, n32 as k1_color, " +
@@ -97,7 +98,11 @@ public class GraphSBean {
             if (res.next()) {
                 init = new GraphElement(0, null, date);
 
-                Connector connector = new Connector(res.getString("q"));
+                Connector connector = new Connector((
+                        (Objects.nonNull(res.getString("q")) ? res.getString("q") : "") +
+                        " " +
+                        (Objects.nonNull(res.getString("t")) ? res.getString("t") : "")
+                    ).trim());
                 connector.setTemperature(new ConnectorValue(res.getString("temperature"), res.getString("temperature_color")));
                 if (res.getString(3) != null) {
                     connector.getIn()[0] = new ConnectorValue(res.getString(3), res.getString(4));
