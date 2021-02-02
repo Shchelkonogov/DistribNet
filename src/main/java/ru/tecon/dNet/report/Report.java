@@ -32,17 +32,18 @@ public final class Report {
         CellStyle boldCenterStyle = getBoldCenterStyle(wb);
         CellStyle centerStyle = getCenterStyle(wb);
         CellStyle borderStyle = getBorderStyle(wb);
+        CellStyle borderColorStyle = getBorderColorStyle(wb);
 
         LocalDate start = reportDate.withDayOfMonth(1);
         LocalDate end = Stream.of(YearMonth.from(reportDate).atEndOfMonth(), LocalDate.now()).min(LocalDate::compareTo).get();
 
         System.out.println("start month");
-        createSheet(wb, FORMATTER_MONTH, reportDate, object, loader, pt, boldStyle, borderStyle, boldCenterStyle, centerStyle);
+        createSheet(wb, FORMATTER_MONTH, reportDate, object, loader, pt, boldStyle, borderStyle, boldCenterStyle, centerStyle, borderColorStyle);
         System.out.println("end month");
 
         for (LocalDate date = start; date.isBefore(end.plusDays(1)); date = date.plusDays(1)) {
             System.out.println("start " + date);
-            createSheet(wb, FORMATTER_DAY, date, object, loader, pt, boldStyle, borderStyle, boldCenterStyle, centerStyle);
+            createSheet(wb, FORMATTER_DAY, date, object, loader, pt, boldStyle, borderStyle, boldCenterStyle, centerStyle, borderColorStyle);
             System.out.println("end " + date);
         }
 
@@ -53,14 +54,14 @@ public final class Report {
         Workbook wb = new XSSFWorkbook();
 
         createSheet(wb, FORMATTER_DAY, reportDate, object, loader, new PropertyTemplate(),
-                getBoldStyle(wb), getBorderStyle(wb), getBoldCenterStyle(wb), getCenterStyle(wb));
+                getBoldStyle(wb), getBorderStyle(wb), getBoldCenterStyle(wb), getCenterStyle(wb), getBorderColorStyle(wb));
 
         return wb;
     }
 
     private static void createSheet(Workbook wb, DateTimeFormatter formatter, LocalDate date, int object, ReportBeanLocal loader,
                                     PropertyTemplate pt, CellStyle boldStyle, CellStyle borderStyle,
-                                    CellStyle boldCenterStyle, CellStyle centerStyle) {
+                                    CellStyle boldCenterStyle, CellStyle centerStyle, CellStyle borderColorStyle) {
         CellRangeAddress cellAddresses;
 
         Sheet sheet = wb.createSheet("Баланс по ЦТП " + formatter.format(date));
@@ -207,11 +208,20 @@ public final class Report {
                 for (int j = 0; j < objectNames.size(); j++) {
                     String value = loader.getValue(object, objectNames.get(j).getId(), outParams.get(i).getId(),
                             outParams.get(i).getStatId(), formatter.format(date));
-                    createStyledCell(row, 6 + j, value, borderStyle);
-                    if (outParams.get(i).getName().startsWith("Q")) {
-                        try {
-                            calcQ.set(j, calcQ.get(j).add(new BigDecimal(value)));
-                        } catch (Exception ignore) {
+
+                    if (value != null) {
+                        if (value.startsWith("*")) {
+                            value = value.substring(1);
+                            createStyledCell(row, 6 + j, value, borderColorStyle);
+                        } else {
+                            createStyledCell(row, 6 + j, value, borderStyle);
+                        }
+
+                        if (outParams.get(i).getName().startsWith("Q")) {
+                            try {
+                                calcQ.set(j, calcQ.get(j).add(new BigDecimal(value)));
+                            } catch (Exception ignore) {
+                            }
                         }
                     }
                 }
@@ -259,6 +269,17 @@ public final class Report {
         borderStyle.setBorderLeft(BorderStyle.THIN);
         borderStyle.setBorderTop(BorderStyle.THIN);
         borderStyle.setBorderRight(BorderStyle.THIN);
+        return borderStyle;
+    }
+
+    private static CellStyle getBorderColorStyle(Workbook wb) {
+        CellStyle borderStyle = wb.createCellStyle();
+        borderStyle.setBorderBottom(BorderStyle.THIN);
+        borderStyle.setBorderLeft(BorderStyle.THIN);
+        borderStyle.setBorderTop(BorderStyle.THIN);
+        borderStyle.setBorderRight(BorderStyle.THIN);
+        borderStyle.setFillForegroundColor(IndexedColors.CORAL.getIndex());
+        borderStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         return borderStyle;
     }
 
