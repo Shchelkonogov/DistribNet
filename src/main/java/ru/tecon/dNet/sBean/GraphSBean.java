@@ -32,7 +32,8 @@ public class GraphSBean {
             "(select obj_name from obj_object where obj_id = obj_id2) as obj_name " +
             "from (select x.dev_agr_type, x.obj_id1, x.dev_agr_id2, x.obj_id2 " +
             "from dev_agr_link x, obj_object xx, dev_agr xxx " +
-            "where xx.obj_id = x.obj_id2 and x.obj_id1 = ? and x.dev_agr_type = 514 " +
+            "where xx.obj_id = x.obj_id2 and x.obj_id1 = ? " +
+//            "and x.dev_agr_type = 514 " +
             "and x.dev_agr_id2 = xxx.agr_id) " +
             "order by obj_name";
     private static final String SQL_PRODUCER = "select obj_name || 'title=' || (select GET_OBJ_ADDRESS(?) from dual) " +
