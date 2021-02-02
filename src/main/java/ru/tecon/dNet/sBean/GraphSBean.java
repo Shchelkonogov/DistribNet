@@ -71,38 +71,7 @@ public class GraphSBean {
             "where updated_when < to_date(?, 'dd-mm-yyyy') " +
             "order by updated_when desc) " +
             "where rownum = 1";
-    private static final String SQL_PROBLEM_IDS = "select trim(case when p1 = 1 then '1' end || " +
-            "case when p2 = 1 then ' 2' end || " +
-            "case when p3 = 1 then ' 3' end || " +
-            "case when p4 = 1 then ' 4' end || " +
-            "case when p5 = 1 then ' 5' end || " +
-            "case when p6 = 1 then ' 6' end || " +
-            "case when p7 = 1 then ' 7' end || " +
-            "case when p8 = 1 then ' 8' end || " +
-            "case when p9 = 1 then ' 9' end || " +
-            "case when p10 = 1 then ' 10' end || " +
-            "case when p11 = 1 then ' 11' end || " +
-            "case when p12 = 1 then ' 12' end || " +
-            "case when p13 = 1 then ' 13' end || " +
-            "case when p14 = 1 then ' 14' end || " +
-//            "case when p15 = 1 then ' 15' end || " +
-//            "case when p16 = 1 then ' 16' end || " +
-//            "case when p17 = 1 then ' 17' end || " +
-//            "case when p18 = 1 then ' 18' end || " +
-//            "case when p19 = 1 then ' 19' end || " +
-            "case when p20 = 1 then ' 20' end || " +
-            "case when p21 = 1 then ' 21' end || " +
-            "case when p22 = 1 then ' 22' end || " +
-            "case when p23 = 1 then ' 23' end || " +
-            "case when p24 = 1 then ' 24' end || " +
-            "case when p25 = 1 then ' 25' end || " +
-            "case when p26 = 1 then ' 26' end || " +
-            "case when p27 = 1 then ' 27' end || " +
-            "case when p28 = 1 then ' 28' end || " +
-            "case when p29 = 1 then ' 29' end || " +
-            "case when p30 = 1 then ' 30' end || " +
-            "case when p31 = 1 then ' 31' end) as ids " +
-            "from table(dsp_0090t.sel_matrix_ctp_detail(?, to_date(?, 'dd-mm-yyyy')))";
+    private static final String SQL_PROBLEM_IDS = "select problem_id from table(dsp_0090t.sel_obj_problem_d(?, to_date(?, 'dd-mm-yyyy')))";
     private static final String SQL_PROBLEMS = "select techproc, problem_name, color, visible, problem_id from dz_rs_problem where problem_id in (?)";
     private static final String SQL_PROBLEMS_DESCRIPTION = "select mnemo.get_Rnet_Problem_data(?, ?, to_date(?, 'dd-mm-yyyy')) from dual";
 
@@ -341,14 +310,14 @@ public class GraphSBean {
             stm.setInt(1, id);
             stm.setString(2, date);
 
-            List<String> ids = null;
+            List<String> ids = new ArrayList<>();
 
             ResultSet res = stm.executeQuery();
-            if (res.next() && res.getString(1) != null) {
-                ids = new ArrayList<>(Arrays.asList(res.getString(1).split(" ")));
+            while (res.next()) {
+                ids.add(res.getString(1));
             }
 
-            if (ids != null) {
+            if (!ids.isEmpty()) {
                 StringBuilder builder = new StringBuilder();
 
                 ids.forEach(e -> builder.append("?,"));
