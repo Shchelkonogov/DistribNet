@@ -46,7 +46,7 @@
     </h:form>
 
     <h:form>
-        <p:remoteCommand name="redirectJSF" action="#{graph.redirect}"/>
+        <p:remoteCommand name="setObjectIDJSF" action="#{graph.setObjectID}"/>
     </h:form>
 
     <table class="table-style" cellspacing="0" cellpadding="0">
@@ -58,17 +58,32 @@
                                style="min-height: 400px; height: 100%; overflow: hidden;"
                                var="el">
                         <f:facet name="element">
-                            <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
-                            <p:repeat value="#{el.values}" var="value" varStatus="status">
-                                <h:outputText styleClass="#{el.className}#{el.size} textLeftUpGraph#{status.index}"
-                                              value="#{value}"
-                                              style="position: absolute;"/>
-                            </p:repeat>
-                            <p:repeat value="#{el.sumValues}" var="sumValue" varStatus="status">
-                                <h:outputText styleClass="#{el.className}#{el.size} textLeftDownGraph#{status.index}"
-                                              value="#{sumValue}"
-                                              style="position: absolute;"/>
-                            </p:repeat>
+                            <h:panelGroup rendered="#{el.contextMenu}" id="leftData" layout="block" style="height: 100%;">
+                                <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
+                                <p:repeat value="#{el.values}" var="value" varStatus="status">
+                                    <h:outputText styleClass="#{el.className}#{el.size} textLeftUpGraph#{status.index}"
+                                                  value="#{value}"
+                                                  style="position: absolute;"/>
+                                </p:repeat>
+                                <p:repeat value="#{el.sumValues}" var="sumValue" varStatus="status">
+                                    <h:outputText styleClass="#{el.className}#{el.size} textLeftDownGraph#{status.index}"
+                                                  value="#{sumValue}"
+                                                  style="position: absolute;"/>
+                                </p:repeat>
+                            </h:panelGroup>
+                            <h:panelGroup rendered="#{!el.contextMenu}" layout="block" style="height: 100%;">
+                                <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
+                                <p:repeat value="#{el.values}" var="value" varStatus="status">
+                                    <h:outputText styleClass="#{el.className}#{el.size} textLeftUpGraph#{status.index}"
+                                                  value="#{value}"
+                                                  style="position: absolute;"/>
+                                </p:repeat>
+                                <p:repeat value="#{el.sumValues}" var="sumValue" varStatus="status">
+                                    <h:outputText styleClass="#{el.className}#{el.size} textLeftDownGraph#{status.index}"
+                                                  value="#{sumValue}"
+                                                  style="position: absolute;"/>
+                                </p:repeat>
+                            </h:panelGroup>
                         </f:facet>
                     </p:diagram>
 
@@ -174,17 +189,32 @@
                                style="min-height: 500px; height: 100%"
                                var="el">
                         <f:facet name="element">
-                            <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
-                            <p:repeat value="#{el.values}" var="value" varStatus="status">
-                                <h:outputText styleClass="#{el.className}#{el.size} textRightGraph#{status.index}"
-                                              value="#{value}"
-                                              style="position: absolute;"/>
-                            </p:repeat>
-                            <h:outputText style="display: block; margin-top: -1em; margin-left: 10em;
+                            <h:panelGroup rendered="#{el.contextMenu}" id="rightData" layout="block" style="height: 100%;">
+                                <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
+                                <p:repeat value="#{el.values}" var="value" varStatus="status">
+                                    <h:outputText styleClass="#{el.className}#{el.size} textRightGraph#{status.index}"
+                                                  value="#{value}"
+                                                  style="position: absolute;"/>
+                                </p:repeat>
+                                <h:outputText style="display: block; margin-top: -1em; margin-left: 10em;
                                                 height: 10px; border-radius: 5px; background-color: #{graph.selectProblemColor};"
-                                          rendered="#{el.problemDesc != null}" />
-                            <h:outputText style="display: block; margin-top: -1em; margin-left: 10em;"
-                                          rendered="#{el.problemDesc != null}" value="#{el.problemDesc}" />
+                                              rendered="#{el.problemDesc != null}" />
+                                <h:outputText style="display: block; margin-top: -1em; margin-left: 10em;"
+                                              rendered="#{el.problemDesc != null}" value="#{el.problemDesc}" />
+                            </h:panelGroup>
+                            <h:panelGroup rendered="#{!el.contextMenu}" layout="block" style="height: 100%;">
+                                <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
+                                <p:repeat value="#{el.values}" var="value" varStatus="status">
+                                    <h:outputText styleClass="#{el.className}#{el.size} textRightGraph#{status.index}"
+                                                  value="#{value}"
+                                                  style="position: absolute;"/>
+                                </p:repeat>
+                                <h:outputText style="display: block; margin-top: -1em; margin-left: 10em;
+                                                height: 10px; border-radius: 5px; background-color: #{graph.selectProblemColor};"
+                                              rendered="#{el.problemDesc != null}" />
+                                <h:outputText style="display: block; margin-top: -1em; margin-left: 10em;"
+                                              rendered="#{el.problemDesc != null}" value="#{el.problemDesc}" />
+                            </h:panelGroup>
                         </f:facet>
                     </p:diagram>
                 </h:form>
@@ -198,6 +228,17 @@
                         mouseTracking="true" myPosition="top left" adjustX="10" adjustY="10"
                         styleClass="qtip qtip-dark qtip-rounded qtip-shadow"/>
         </p:repeat>
+    </h:form>
+
+    <h:form>
+        <p:contextMenu for="left:leftData">
+            <p:menuitem value="Мнемосхема объекта" action="#{graph.redirect('mnemo')}"/>
+            <p:menuitem value="Ведомость технологических параметров" action="#{graph.redirect('vtp')}"/>
+        </p:contextMenu>
+
+        <p:contextMenu for="right:rightData">
+            <p:menuitem value="Ведомость технологических параметров" action="#{graph.redirect('vtp')}"/>
+        </p:contextMenu>
     </h:form>
 
     <h:form id="error-form">

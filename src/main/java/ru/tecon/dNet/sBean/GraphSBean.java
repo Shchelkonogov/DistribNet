@@ -7,7 +7,7 @@ import ru.tecon.dNet.model.GraphElement;
 import ru.tecon.dNet.model.Problem;
 
 import javax.annotation.Resource;
-import javax.ejb.Startup;
+import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -20,8 +20,8 @@ import java.util.logging.Logger;
 /**
  * Stateless bean для загрузки информации для построения мнемосхемы
  */
-@Startup
 @Stateless
+@LocalBean
 public class GraphSBean {
 
     private final static Logger LOG = Logger.getLogger(GraphSBean.class.getName());
@@ -67,6 +67,7 @@ public class GraphSBean {
             "n21 as energy, n42 as connectionAggregateId " +
             "from table (mnemo.get_Rnet_UU_hist_data(?, ?, to_date(?, 'dd-mm-yyyy')))";
     private static final String SQL_REDIRECT = "select mnemo_ip, mnemo_port from dz_sys_param";
+    private static final String SELECT_REDIRECT_TD_URL = "select td_url from dz_sys_param";
     private static final String SQL_CHECK_SUMMER = "select decode(season, 'LETO', '1', '0') " +
             "from (select season from sys_season_log " +
             "where updated_when < to_date(?, 'dd-mm-yyyy') " +
@@ -395,6 +396,23 @@ public class GraphSBean {
             ResultSet res = stm.executeQuery();
             if (res.next()) {
                 return "http://" + res.getString(1) + ":" + res.getString(2) + "/mnemo/?objectId=" + object;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Метод возвращает url для перехода систему ТД
+     * @return url адрес
+     */
+    public String getRedirectUrlTD() {
+        try (Connection connect = ds.getConnection();
+             PreparedStatement stm = connect.prepareStatement(SELECT_REDIRECT_TD_URL)) {
+            ResultSet res = stm.executeQuery();
+            if (res.next()) {
+                return res.getString(1);
             }
         } catch (SQLException e) {
             e.printStackTrace();

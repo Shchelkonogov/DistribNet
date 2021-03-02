@@ -40,6 +40,8 @@ public class GraphMBean implements Serializable {
 
     private static Logger log = Logger.getLogger(GraphMBean.class.getName());
 
+    private String objectID;
+
     private int object;
     private LocalDate localDate;
     private DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
@@ -205,7 +207,7 @@ public class GraphMBean implements Serializable {
         Element prodLeft = new Element(
                 new DiagramElement(producer.getName(),
                         producer.getConnectionDescriptionLine1(), connectDesc2,
-                        "right"),
+                        "right", true),
                 "18em", "9em");
         prodLeft.setDraggable(false);
         prodLeft.setId("idProd-objectIdLeft");
@@ -275,7 +277,7 @@ public class GraphMBean implements Serializable {
             Element right = new Element(
                     new DiagramElement(el.getName(),
                             el.getConnectors().stream().map(Connector::getName).collect(Collectors.toList()),
-                            "left", el.getObjectId(), problemDesc.get(el.getObjectId())),
+                            "left", el.getObjectId(), problemDesc.get(el.getObjectId()), true),
                     "24em", yPos + "px");
             right.setDraggable(false);
             right.setId("id" + yPos + "-objectIdRight" + index);
@@ -327,6 +329,10 @@ public class GraphMBean implements Serializable {
                 .append(Math.max(yPos - 30, BLOCK_HEIGHT * producer.getConnectors().size() + 120))
                 .append("px; width: 1em; box-shadow: none;}")
                 .append("#right\\:diaRight-idDownWrapper{height: 1em; width: 1em; visibility: hidden;}");
+    }
+
+    public void setObjectID() {
+        objectID = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("objectId");
     }
 
     private void initConnections(Element left, Element right, GraphElement el, DefaultDiagramModel model, List<String> namesForGetColor) {
@@ -542,26 +548,33 @@ public class GraphMBean implements Serializable {
         init();
     }
 
-    public void redirect() {
-        String id = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("objectId");
+    public void redirect(String type) {
+        String id = null;
 
-        String objectId = null;
-
-        if (id.equals("Left")) {
-            objectId = String.valueOf(object);
+        if (objectID.equals("Left")) {
+            id = String.valueOf(object);
         } else {
             try {
-                objectId = String.valueOf(consumersId.get(Integer.valueOf(id)));
+                id = String.valueOf(consumersId.get(Integer.valueOf(objectID)));
             } catch (NumberFormatException e) {
                 e.printStackTrace();
             }
-
-            //Временно отключил ветку потребителей
-            objectId = null;
         }
 
-        if (objectId != null) {
-            PrimeFaces.current().executeScript("window.open('" + bean.getRedirectUrl(objectId) + "'), '_blank'");
+        if (id != null) {
+            switch (type) {
+                case "mnemo":
+                    PrimeFaces.current().executeScript("window.open('" + bean.getRedirectUrl(id) + "'), '_blank'");
+                    break;
+                case "vtp":
+                    try {
+                        PrimeFaces.current().executeScript("window.open('" + bean.getRedirectUrlTD() + "/techparams/archive/" + Integer.valueOf(id) +
+                                "?date=" + localDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy")) + "&aggregation=1&expanded=false'), '_blank'");
+                    } catch (NumberFormatException e) {
+                        log.warning("error objectID: " + id);
+                    }
+                    break;
+            }
         }
     }
 
