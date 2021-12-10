@@ -1,9 +1,11 @@
 package report;
 
+import ru.tecon.dNet.report.model.CellValue;
 import ru.tecon.dNet.report.model.ConsumerModel;
 import ru.tecon.dNet.report.model.DataModel;
 import ru.tecon.dNet.sBean.ReportBeanLocal;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -41,19 +43,24 @@ public class BalanceCTPData implements ReportBeanLocal {
     }
 
     @Override
-    public List<DataModel> getInParameters(int object, String date) {
-        return Arrays.asList(new DataModel("Q", String.valueOf(ThreadLocalRandom.current().nextInt(-1000, 1000)), 1, 1), new DataModel("Имя 2", "Значение 2", 2, 2),
-                new DataModel("Имя 3", "Значение 3", 3, 3));
+    public List<DataModel> getInParameters(int object, LocalDate startDate, LocalDate endDate) {
+        return Arrays.asList(new DataModel("Q", String.valueOf(ThreadLocalRandom.current().nextInt(-1000, 1000)), 1, 1, 0), new DataModel("Имя 2", "Значение 2", 2, 2, 1),
+                new DataModel("Имя 3", "Значение 3", 3, 3, 2));
     }
 
     @Override
-    public List<DataModel> getOutParameters(int object, String date) {
-        return Arrays.asList(new DataModel("Имя 1", "Значение 1", 1, 1), new DataModel("Q", String.valueOf(ThreadLocalRandom.current().nextInt(-1000, 1000)), 2, 2),
-                new DataModel("Имя 3", "Значение 3", 3, 3), new DataModel("Имя 4", "Значение 4", 4, 4));
+    public List<DataModel> getOutParameters(int object, LocalDate startDate, LocalDate endDate) {
+        return Arrays.asList(new DataModel("Имя 1", "Значение 1", 1, 1, 0), new DataModel("Q", String.valueOf(ThreadLocalRandom.current().nextInt(-1000, 1000)), 2, 2, 1),
+                new DataModel("Имя 3", "Значение 3", 3, 3, 2), new DataModel("Имя 4", "Значение 4", 4, 4, 3));
     }
 
     @Override
-    public String getValue(int parentID, int object, int id, int statId, String date) {
-        return String.valueOf(ThreadLocalRandom.current().nextInt(-1000, 1000));
+    public CellValue getValue(int parentID, int object, int id, int statId, LocalDate startDate, LocalDate endDate) {
+        return new CellValue(String.valueOf(ThreadLocalRandom.current().nextInt(-1000, 1000)), 0);
+    }
+
+    @Override
+    public List<String> getTotalData(int objectID, LocalDate startDate, LocalDate endDate) {
+        return Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11");
     }
 }

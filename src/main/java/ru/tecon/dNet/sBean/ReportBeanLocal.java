@@ -1,9 +1,11 @@
 package ru.tecon.dNet.sBean;
 
+import ru.tecon.dNet.report.model.CellValue;
 import ru.tecon.dNet.report.model.ConsumerModel;
 import ru.tecon.dNet.report.model.DataModel;
 
 import javax.ejb.Local;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -64,18 +66,20 @@ public interface ReportBeanLocal {
     /**
      * Получение списка входный параметров
      * @param object id объекта
-     * @param date дата в формате dd.MM.yyyy
+     * @param startDate начальная дата
+     * @param endDate конечная дата
      * @return список входных параметров
      */
-    List<DataModel> getInParameters(int object, String date);
+    List<DataModel> getInParameters(int object, LocalDate startDate, LocalDate endDate);
 
     /**
      * Получение списка выходных параметров
      * @param object id объекта
-     * @param date дата в формате dd.MM.yyyy
+     * @param startDate начальная дата
+     * @param endDate конечная дата
      * @return список выходных параметров
      */
-    List<DataModel> getOutParameters(int object, String date);
+    List<DataModel> getOutParameters(int object, LocalDate startDate, LocalDate endDate);
 
     /**
      * Получние значений по парамтру
@@ -83,8 +87,11 @@ public interface ReportBeanLocal {
      * @param object id объекта
      * @param id id параметра
      * @param statId id стат агрегата
-     * @param date дата в формате dd.MM.yyyy
+     * @param startDate начальная дата
+     * @param endDate конечная дата
      * @return значение параметра
      */
-    String getValue(int parentID, int object, int id, int statId, String date);
+    CellValue getValue(int parentID, int object, int id, int statId, LocalDate startDate, LocalDate endDate);
+
+    List<String> getTotalData(int objectID, LocalDate startDate, LocalDate endDate);
 }

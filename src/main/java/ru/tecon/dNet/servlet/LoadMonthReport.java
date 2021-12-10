@@ -29,11 +29,16 @@ public class LoadMonthReport extends HttpServlet {
         String date = req.getParameter("date");
 
         resp.setContentType("application/vnd.ms-excel; charset=UTF-8");
-        resp.setHeader("Content-Disposition", "attachment; filename=\"" + URLEncoder.encode("Баланс по ЦТП (месяц).xlsx", "UTF-8") + "\"");
+        resp.setHeader("Content-Disposition", "attachment; filename=\"" +
+                URLEncoder.encode("Баланс", "UTF-8") + " " +
+                URLEncoder.encode("по", "UTF-8") + " " +
+                URLEncoder.encode("ЦТП", "UTF-8") + " " +
+                URLEncoder.encode("(месяц).xlsx", "UTF-8") + "\"");
         resp.setCharacterEncoding("UTF-8");
 
         try (OutputStream output = resp.getOutputStream()) {
-            Report.createMonthReport(object, LocalDate.parse(date, FORMATTER), bean).write(output);
+            LocalDate startDate = LocalDate.parse(date, FORMATTER).withDayOfMonth(1);
+            Report.createMonthReport(object, startDate, startDate.plusMonths(1), bean).write(output);
             output.flush();
         } catch (IOException e) {
             e.printStackTrace();

@@ -29,7 +29,11 @@ public class LoadDayReport extends HttpServlet {
         String date = req.getParameter("date");
 
         resp.setContentType("application/vnd.ms-excel; charset=UTF-8");
-        resp.setHeader("Content-Disposition", "attachment; filename=\"" + URLEncoder.encode("Баланс по ЦТП (сутки).xlsx", "UTF-8") + "\"");
+        resp.setHeader("Content-Disposition", "attachment; filename=\"" +
+                URLEncoder.encode("Баланс", "UTF-8") + " " +
+                URLEncoder.encode("по", "UTF-8") + " " +
+                URLEncoder.encode("ЦТП", "UTF-8") + " " +
+                URLEncoder.encode("(сутки).xlsx", "UTF-8") + "\"");
         resp.setCharacterEncoding("UTF-8");
 
         try (OutputStream output = resp.getOutputStream()) {

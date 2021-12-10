@@ -16,7 +16,7 @@ public class BalanceCTP {
         try (OutputStream streamDay = new FileOutputStream("C:/Programs/balanceCTPDay.xlsx");
              OutputStream streamMonth = new FileOutputStream("C:/Programs/balanceCTPMonth.xlsx")) {
             Report.createDayReport(464836, LocalDate.parse("20.10.2015", FORMATTER_DAY), new BalanceCTPData()).write(streamDay);
-            Report.createMonthReport(464836, LocalDate.parse("20.10.2015", FORMATTER_DAY), new BalanceCTPData()).write(streamMonth);
+            Report.createMonthReport(464836, LocalDate.parse("20.10.2015", FORMATTER_DAY).withDayOfMonth(1), LocalDate.parse("20.10.2015", FORMATTER_DAY).withDayOfMonth(1).plusMonths(1), new BalanceCTPData()).write(streamMonth);
         } catch (IOException e) {
             e.printStackTrace();
         }

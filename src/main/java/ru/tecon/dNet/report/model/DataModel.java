@@ -8,12 +8,14 @@ public class DataModel {
     private String value;
     private int id;
     private int statId;
+    private int colorIndex;
 
-    public DataModel(String name, String value, int id, int statId) {
+    public DataModel(String name, String value, int id, int statId, int colorIndex) {
         this.name = name;
         this.value = value;
         this.id = id;
         this.statId = statId;
+        this.colorIndex = colorIndex;
     }
 
     public String getName() {
@@ -32,6 +34,10 @@ public class DataModel {
         return statId;
     }
 
+    public int getColorIndex() {
+        return colorIndex;
+    }
+
     @Override
     public String toString() {
         return new StringJoiner(", ", DataModel.class.getSimpleName() + "[", "]")
@@ -39,6 +45,7 @@ public class DataModel {
                 .add("value='" + value + "'")
                 .add("id=" + id)
                 .add("statId=" + statId)
+                .add("colorIndex=" + colorIndex)
                 .toString();
     }
 }

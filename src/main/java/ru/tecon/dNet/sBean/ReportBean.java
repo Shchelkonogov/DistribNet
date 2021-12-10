@@ -1,5 +1,6 @@
 package ru.tecon.dNet.sBean;
 
+import ru.tecon.dNet.report.model.CellValue;
 import ru.tecon.dNet.report.model.ConsumerModel;
 import ru.tecon.dNet.report.model.DataModel;
 
@@ -9,10 +10,8 @@ import javax.ejb.Stateless;
 import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -44,15 +43,12 @@ public class ReportBean implements ReportBeanLocal {
             "and x.dev_agr_id2 = xxx.agr_id) " +
             "order by obj_name";
 
-    private static final String SELECT_IN_PARAMETERS = "select * from table (mnemo.get_Rnet_CTP_otch_data(?, to_date(?, 'dd.mm.yyyy')))";
-    private static final String SELECT_OUT_PARAMETERS ="select * from table (mnemo.get_Rnet_CTP_out_otch_data(?, to_date(?,'dd.mm.yyyy')))";
+    private static final String SELECT_IN_PARAMETERS = "select * from table(dsp_0045t.get_Rnet_CTP_otch_data(?, ?, ?))";
+    private static final String SELECT_OUT_PARAMETERS = "select * from table(dsp_0045t.get_Rnet_CTP_out_otch_data(?, ?, ?))";
 
-    private static final String SELECT_VALUE = "select mnemo.get_Rnet_UU_otch_data(?, ?, ?, ?, to_date(?, 'dd.mm.yyyy')) from dual";
+    private static final String SELECT_VALUE = "{? = call dsp_0045t.get_Rnet_UU_otch_data(?, ?, ?, ?, ?, ?, ?)}";
 
-    private static final String SELECT_IN_PARAMETERS_M = "select * from table (mnemo.get_Rnet_CTP_otch_data_m(?, to_date(?, 'mm.yyyy')))";
-    private static final String SELECT_OUT_PARAMETERS_M ="select * from table (mnemo.get_Rnet_CTP_out_otch_data_m(?, to_date(?,'mm.yyyy')))";
-
-    private static final String SELECT_VALUE_M = "select mnemo.get_Rnet_UU_otch_data_m(?, ?, ?, ?, to_date(?, 'mm.yyyy')) from dual";
+    private static final String SELECT_TOTAL_DATA = "select * from table(dsp_0045t.get_Rnet_CTP_otch_data_itog(?, ?, ?))";
 
     @Resource(name = "jdbc/DataSource")
     private DataSource ds;
@@ -105,71 +101,64 @@ public class ReportBean implements ReportBeanLocal {
     }
 
     @Override
-    public List<DataModel> getInParameters(int object, String date) {
-        if (date.matches("([0-9]{2}\\.){2}([0-9]{4})")) {
-            return loadParameters(object, date, SELECT_IN_PARAMETERS);
-        }
-        if (date.matches("([0-9]{2}\\.)([0-9]{4})")) {
-            return loadParameters(object, date, SELECT_IN_PARAMETERS_M);
-        }
-        return null;
+    public List<DataModel> getInParameters(int object, LocalDate startDate, LocalDate endDate) {
+        return loadParameters(object, startDate, endDate, SELECT_IN_PARAMETERS);
     }
 
     @Override
-    public List<DataModel> getOutParameters(int object, String date) {
-        if (date.matches("([0-9]{2}\\.){2}([0-9]{4})")) {
-            return loadParameters(object, date, SELECT_OUT_PARAMETERS);
-        }
-        if (date.matches("([0-9]{2}\\.)([0-9]{4})")) {
-            return loadParameters(object, date, SELECT_OUT_PARAMETERS_M);
-        }
-        return null;
+    public List<DataModel> getOutParameters(int object, LocalDate startDate, LocalDate endDate) {
+        return loadParameters(object, startDate, endDate, SELECT_OUT_PARAMETERS);
     }
 
     @Override
-    public String getValue(int parentID, int object, int id, int statId, String date) {
+    public CellValue getValue(int parentID, int object, int id, int statId, LocalDate startDate, LocalDate endDate) {
         try (Connection connection = ds.getConnection();
-             PreparedStatement stm = connection.prepareStatement(SELECT_VALUE);
-             PreparedStatement stmM = connection.prepareStatement(SELECT_VALUE_M)) {
+             CallableStatement cStm = connection.prepareCall(SELECT_VALUE)) {
+            cStm.registerOutParameter(1, Types.VARCHAR);
+            cStm.setInt(2, parentID);
+            cStm.setInt(3, object);
+            cStm.setInt(4, id);
+            cStm.setInt(5, statId);
+            cStm.setDate(6, Date.valueOf(startDate));
+            cStm.setDate(7, Date.valueOf(endDate));
+            cStm.registerOutParameter(8, Types.INTEGER);
+            cStm.executeUpdate();
 
-            ResultSet res = null;
-
-            if (date.matches("([0-9]{2}\\.){2}([0-9]{4})")) {
-                stm.setInt(1, parentID);
-                stm.setInt(2, object);
-                stm.setInt(3, id);
-                stm.setInt(4, statId);
-                stm.setString(5, date);
-                res = stm.executeQuery();
+            try {
+                return new CellValue(new BigDecimal(cStm.getString(1).trim()).setScale(2, RoundingMode.HALF_EVEN).toString(), cStm.getInt(8));
+            } catch (Exception ignore) {
+                return new CellValue("", 0);
             }
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "error load data for object: " + object, e);
+        }
+        return null;
+    }
 
-            if (date.matches("([0-9]{2}\\.)([0-9]{4})")) {
-                stmM.setInt(1, parentID);
-                stmM.setInt(2, object);
-                stmM.setInt(3, id);
-                stmM.setInt(4, statId);
-                stmM.setString(5, date);
-                res = stmM.executeQuery();
-            }
+    @Override
+    public List<String> getTotalData(int objectID, LocalDate startDate, LocalDate endDate) {
+        List<String> result = new ArrayList<>();
+        try (Connection connection = ds.getConnection();
+             PreparedStatement stm = connection.prepareStatement(SELECT_TOTAL_DATA)) {
+            stm.setInt(1, objectID);
+            stm.setDate(2, Date.valueOf(startDate));
+            stm.setDate(3, Date.valueOf(endDate));
 
-            if (res == null) {
-                return "";
-            }
+            ResultSet res = stm.executeQuery();
 
             if (res.next()) {
-                try {
-                    return new BigDecimal(res.getString(1).trim()).setScale(2, RoundingMode.HALF_EVEN).toString();
-                } catch (Exception ignore) {
-                    return res.getString(1);
+                for (int i = 1; i < 12; i++) {
+                    result.add(res.getString("n" + i));
+                    result.add(res.getString("n" + i + "_col"));
                 }
             }
         } catch (SQLException e) {
-            LOG.warning("error load data for object: " + object);
+            LOG.log(Level.WARNING, "error load total data for object: " + objectID, e);
         }
-        return "";
+        return result;
     }
 
-    private List<DataModel> loadParameters(int object, String date, String select) {
+    private List<DataModel> loadParameters(int object, LocalDate startDate, LocalDate endDate, String select) {
         List<DataModel> result = new ArrayList<>();
         try (Connection connection = ds.getConnection();
              PreparedStatement stmAlter = connection.prepareStatement(ALTER);
@@ -177,14 +166,16 @@ public class ReportBean implements ReportBeanLocal {
             stmAlter.executeQuery();
 
             stm.setInt(1, object);
-            stm.setString(2, date);
+            stm.setDate(2, Date.valueOf(startDate));
+            stm.setDate(3, Date.valueOf(endDate));
             ResultSet res = stm.executeQuery();
 
             while (res.next()) {
-                result.add(new DataModel(res.getString(1), res.getString(4), res.getInt(2), res.getInt(3)));
+                result.add(new DataModel(res.getString(1), res.getString(4), res.getInt(2), res.getInt(3), res.getInt(5)));
             }
         } catch (SQLException e) {
-            LOG.log(Level.WARNING, "error load data select: " + select + " for object: " + object + " date: " + date, e);
+            LOG.log(Level.WARNING, "error load data select: " + select +
+                    " for object: " + object + " startDate: " + startDate + " endDate: " + endDate, e);
         }
         return result;
     }
