@@ -12,6 +12,7 @@ import ru.tecon.dNet.sBean.ReportBeanLocal;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +26,7 @@ public final class Report {
     private static final Logger LOGGER = Logger.getLogger(Report.class.getName());
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
 
     public static Workbook createMonthReport(int object, LocalDate startDate, LocalDate endDate, ReportBeanLocal loader) {
         Workbook wb = new XSSFWorkbook();
@@ -240,6 +242,10 @@ public final class Report {
                 createStyledCell(row, i + 1, totalValues.get(2 * i), styleMap.get(getStyleName(Integer.parseInt(totalValues.get(2 * i + 1)))));
             }
         }
+
+        sheet.createRow(18 + rowCount)
+                .createCell(1)
+                .setCellValue("Отчет сформирован " + LocalDateTime.now().format(DATE_TIME_FORMAT));
 
         pt.drawBorders(new CellRangeAddress(7, 10, 1, 11), BorderStyle.MEDIUM, BorderExtent.OUTSIDE);
 
