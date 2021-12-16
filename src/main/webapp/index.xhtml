@@ -158,11 +158,11 @@
                                 </p:selectBooleanButton>
                             </td>
                             <td style="width: 50px; text-align: right;">
-                                <p:button onclick="window.open('loadDay?object=#{graph.object}&amp;date=#{graph.date}')"
+                                <p:button onclick="window.open('loadDay?object=#{graph.object}&amp;date=#{graph.date}'); return false"
                                           icon="pi pi-file" target="_blank" title="Суточный отчет"/>
                             </td>
                             <td style="width: 50px; text-align: left;">
-                                <p:button onclick="window.open('loadMonth?object=#{graph.object}&amp;date=#{graph.date}')"
+                                <p:button onclick="window.open('loadMonth?object=#{graph.object}&amp;date=#{graph.date}'); return false"
                                           icon="pi pi-copy" target="_blank" title="Месячный отчет"/>
                             </td>
                             <td style="width: 35px; text-align: right;">
