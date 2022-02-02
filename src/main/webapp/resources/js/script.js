@@ -1,4 +1,10 @@
-$( document ).ready(function(){
+$( document ).ready(function() {
+    addListener();
+});
+
+function addListener() {
+    // console.log('update listeners');
+
     $('.ui-diagram > .ui-diagram-element').contextmenu(function(info){
         // console.log('Node: ' + info.target.id);
         // console.log('Parent node: ' + info.target.parentNode.id);
@@ -20,4 +26,4 @@ $( document ).ready(function(){
 
         setObjectIDJSF([{name: 'objectId', value: id}]);
     });
-});
+}

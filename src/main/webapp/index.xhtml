@@ -108,7 +108,7 @@
                 <h:form id="settingsPanel">
                     <p:selectOneRadio id="customRadioProblems" layout="custom">
                         <f:selectItems value="#{graph.displayProblems}" />
-                        <p:ajax listener="#{graph.addProblemMessage}" update="left right css-style tooltip-form" />
+                        <p:ajax listener="#{graph.addProblemMessage}" update="left right css-style tooltip-form" oncomplete="addListener();" />
                     </p:selectOneRadio>
 
                     <div style="height: 300px; width: 400px; margin: 0 auto; overflow: auto;">
@@ -140,21 +140,21 @@
                                                        rendered="#{graph.visibleCo}"
                                                        onLabel="ЦО" offLabel="ЦО"
                                                        onIcon="pi pi-check" offIcon="pi pi-times">
-                                    <p:ajax update="left right css-style tooltip-form error-form" listener="#{graph.changeButton}"/>
+                                    <p:ajax update="left right css-style tooltip-form error-form" listener="#{graph.changeButton}" oncomplete="addListener();"/>
                                 </p:selectBooleanButton>
                                 <p:selectBooleanButton styleClass="boolean-button-bar"
                                                        value="#{graph.gvs}"
                                                        rendered="#{graph.visibleGvs}"
                                                        onLabel="ГВС" offLabel="ГВС"
                                                        onIcon="pi pi-check" offIcon="pi pi-times">
-                                    <p:ajax update="left right css-style tooltip-form error-form" listener="#{graph.changeButton}"/>
+                                    <p:ajax update="left right css-style tooltip-form error-form" listener="#{graph.changeButton}" oncomplete="addListener();"/>
                                 </p:selectBooleanButton>
                                 <p:selectBooleanButton styleClass="boolean-button-bar"
                                                        value="#{graph.vent}"
                                                        rendered="#{graph.visibleVent}"
                                                        onLabel="Вент" offLabel="Вент"
                                                        onIcon="pi pi-check" offIcon="pi pi-times">
-                                    <p:ajax update="left right css-style tooltip-form error-form" listener="#{graph.changeButton}"/>
+                                    <p:ajax update="left right css-style tooltip-form error-form" listener="#{graph.changeButton}" oncomplete="addListener();"/>
                                 </p:selectBooleanButton>
                             </td>
                             <td style="width: 50px; text-align: right;">
