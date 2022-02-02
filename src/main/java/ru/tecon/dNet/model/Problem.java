@@ -1,6 +1,7 @@
 package ru.tecon.dNet.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.StringJoiner;
 
 public class Problem implements Serializable {
@@ -31,6 +32,22 @@ public class Problem implements Serializable {
 
     public Integer getProblemId() {
         return problemId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Problem problem = (Problem) o;
+        return display == problem.display &&
+                Objects.equals(name, problem.name) &&
+                Objects.equals(color, problem.color) &&
+                Objects.equals(problemId, problem.problemId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, color, display, problemId);
     }
 
     @Override

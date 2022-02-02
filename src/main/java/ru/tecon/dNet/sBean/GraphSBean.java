@@ -74,7 +74,8 @@ public class GraphSBean {
             "order by updated_when desc) " +
             "where rownum = 1";
     private static final String SQL_PROBLEM_IDS = "select problem_id from table(dsp_0090t.sel_obj_problem_d(?, to_date(?, 'dd-mm-yyyy')))";
-    private static final String SQL_PROBLEMS = "select techproc, problem_name, color, visible, problem_id from dz_rs_problem where problem_id in (?)";
+    private static final String SQL_PROBLEMS = "select techproc, main_problem_name, color, visible, a.main_problem_id from dz_rs_problem a, dz_rs_main_problem b " +
+            "where b.main_problem_id in (?) and a.main_problem_id = b.main_problem_id";
     private static final String SQL_PROBLEMS_DESCRIPTION = "select mnemo.get_Rnet_Problem_data(?, ?, to_date(?, 'dd-mm-yyyy')) from dual";
 
     @Resource(name = "jdbc/DataSource")
@@ -310,7 +311,7 @@ public class GraphSBean {
      * @param id id объекта
      * @param date дата по которой смотрим проблемы (dd-mm-yyyy)
      */
-    public void getProblems(Map<String, List<Problem>> problems, int id, String date) {
+    public void getProblems(Map<String, Set<Problem>> problems, int id, String date) {
         try (Connection connect = ds.getConnection();
                 PreparedStatement stm = connect.prepareStatement(SQL_PROBLEM_IDS)) {
             stm.setInt(1, id);
@@ -337,13 +338,15 @@ public class GraphSBean {
 
                     res = stmProblems.executeQuery();
                     while (res.next()) {
+
+                        // Сказали зашиться на желтый цвет
+//                        Problem problem = new Problem(res.getString(2), res.getString(3), res.getBoolean(4), res.getInt(5));
+                        Problem problem = new Problem(res.getString(2), "yellow", res.getBoolean(4), res.getInt(5));
+
                         if (problems.containsKey(res.getString(1))) {
-                            problems.get(res.getString(1)).add(new Problem(res.getString(2), res.getString(3),
-                                    res.getBoolean(4), res.getInt(5)));
+                            problems.get(res.getString(1)).add(problem);
                         } else {
-                            problems.put(res.getString(1), new ArrayList<>(Collections.singletonList(
-                                    new Problem(res.getString(2), res.getString(3),
-                                            res.getBoolean(4), res.getInt(5)))));
+                            problems.put(res.getString(1), new HashSet<>(Collections.singleton(problem)));
                         }
                     }
                 } catch (SQLException e) {
