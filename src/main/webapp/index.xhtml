@@ -118,11 +118,13 @@
                                 <p:outputPanel>
                                     <p:repeat value="#{graph.getProblemsValues(pr)}" var="prName" varStatus="prNameStatus">
                                         <h:panelGrid columns="3" columnClasses="c1,c2,c1" style="width: 100%;">
-                                            <h:outputText style="font-size: 16px; background-color: #{prName.color};"
+<!--                                        попросили убрать окраску background-color: #{prName.color};-->
+                                            <h:outputText style="font-size: 16px;"
                                                           value="#{prNameStatus.index + 1}." />
                                             <h:outputText style="font-size: 16px;"
                                                           value="#{prName.name}" />
-                                            <p:radioButton rendered="#{prName.display}" for="settingsPanel:customRadioProblems"
+<!--                                        попросили убрать отображание проблем rendered #{prName.display}-->
+                                            <p:radioButton rendered="false" for="settingsPanel:customRadioProblems"
                                                            itemIndex="#{graph.getProblemIndex(pr, prName.name)}" />
                                         </h:panelGrid>
                                     </p:repeat>
