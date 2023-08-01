@@ -4,7 +4,7 @@
 <glassfish-web-app>
     <resource-ref>
         <res-ref-name>jdbc/DataSource</res-ref-name>
-        <jndi-name>jdbc/OracleDataSource</jndi-name>
+        <jndi-name>jdbc/PostgresDataSource</jndi-name>
     </resource-ref>
     <class-loader delegate="false"/>
 </glassfish-web-app>
