@@ -23,32 +23,30 @@ public class ReportBean implements ReportBeanLocal {
 
     private static final Logger LOG = Logger.getLogger(ReportBean.class.getName());
 
-    private static final String ALTER = "alter session set nls_numeric_characters = '.,'";
-
-    private static final String SELECT_CTP = "select obj_name from obj_object where obj_id = ?";
-    private static final String SELECT_CONNECT_SCHEMA = "select val from obj_object_properties " +
+    private static final String SELECT_CTP = "select obj_name from admin.obj_object where obj_id = ?";
+    private static final String SELECT_CONNECT_SCHEMA = "select val from admin.obj_object_properties " +
             "where obj_type_id = 1 and prop_id = 20 and obj_id = ?";
-    private static final String SELECT_FILIAL = "select get_obj_filial(?) from dual";
-    private static final String SELECT_COMPANY = "select get_obj_pred(?) from dual";
-    private static final String SELECT_SOURCE = "select val from obj_object_properties " +
+    private static final String SELECT_FILIAL = "select get_obj_filial(?)";
+    private static final String SELECT_COMPANY = "select get_obj_pred(?)";
+    private static final String SELECT_SOURCE = "select val from admin.obj_object_properties " +
             "where obj_type_id = 1 and prop_id = 14 and obj_id = ?";
-    private static final String SELECT_ADDRESS = "select get_obj_address(?) from dual";
+    private static final String SELECT_ADDRESS = "select admin.get_obj_address(?)";
 
-    private static final String SELECT_CONSUMERS = "select distinct(obj_id2) as obj_id, " +
-            "(select obj_name from obj_object where obj_id = obj_id2) as obj_name " +
+    private static final String SELECT_CONSUMERS = "select distinct constable.obj_id2 as obj_id, " +
+            "(select obj_name from admin.obj_object where obj_id = constable.obj_id2) as obj_name " +
             "from (select x.dev_agr_type, x.obj_id1, x.dev_agr_id2, x.obj_id2 " +
-            "from dev_agr_link x, obj_object xx, dev_agr xxx " +
+            "from admin.dev_agr_link x, admin.obj_object xx, admin.dev_agr xxx " +
             "where xx.obj_id = x.obj_id2 and x.obj_id1 = ? " +
 //            "and x.dev_agr_type = 514 " +
-            "and x.dev_agr_id2 = xxx.agr_id) " +
+            "and x.dev_agr_id2 = xxx.agr_id) constable " +
             "order by obj_name";
 
-    private static final String SELECT_IN_PARAMETERS = "select * from table(dsp_0045t.get_Rnet_CTP_otch_data(?, ?, ?))";
-    private static final String SELECT_OUT_PARAMETERS = "select * from table(dsp_0045t.get_Rnet_CTP_out_otch_data(?, ?, ?))";
+    private static final String SELECT_IN_PARAMETERS = "select * from dsp_0045t.get_rnet_ctp_otch_data(?, ?, ?)";
+    private static final String SELECT_OUT_PARAMETERS = "select * from dsp_0045t.get_rnet_ctp_out_otch_data(?, ?, ?)";
 
-    private static final String SELECT_VALUE = "{? = call dsp_0045t.get_Rnet_UU_otch_data(?, ?, ?, ?, ?, ?, ?)}";
+    private static final String SELECT_VALUE = "call dsp_0045t.get_rnet_uu_otch_data(?, ?, ?, ?, ?, ?, ?)";
 
-    private static final String SELECT_TOTAL_DATA = "select * from table(dsp_0045t.get_Rnet_CTP_otch_data_itog(?, ?, ?))";
+    private static final String SELECT_TOTAL_DATA = "select * from dsp_0045t.get_Rnet_CTP_otch_data_itog(?, ?, ?)";
 
     @Resource(name = "jdbc/DataSource")
     private DataSource ds;
@@ -161,9 +159,7 @@ public class ReportBean implements ReportBeanLocal {
     private List<DataModel> loadParameters(int object, LocalDate startDate, LocalDate endDate, String select) {
         List<DataModel> result = new ArrayList<>();
         try (Connection connection = ds.getConnection();
-             PreparedStatement stmAlter = connection.prepareStatement(ALTER);
              PreparedStatement stm = connection.prepareStatement(select)) {
-            stmAlter.executeQuery();
 
             stm.setInt(1, object);
             stm.setDate(2, Date.valueOf(startDate));

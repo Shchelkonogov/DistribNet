@@ -611,6 +611,22 @@ public class GraphMBean implements Serializable {
         init();
     }
 
+    /**
+     * Метод возвращает балансовую принадлежность ЦТП
+     * @return значение балансовой принадлежности
+     */
+    public String getBalanceAffiliationMB (String name) {
+        return bean.getBalanceAffiliation(name);
+    }
+
+    /**
+     * Метод возвращает тип дома
+     * @return тип дома
+     */
+    public String getHouseTypeMB (String name) {
+        return bean.getHouseType(name);
+    }
+
     public ConnectorValue[] getProducerIndex() {
         return producerIndex;
     }

@@ -60,6 +60,7 @@
                         <f:facet name="element">
                             <h:panelGroup rendered="#{el.contextMenu}" id="leftData" layout="block" style="height: 100%;">
                                 <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
+                                <h:outputText value="#{graph.getBalanceAffiliationMB(el.name)}" style="display: block; margin-top: -2.8em;"/>
                                 <p:repeat value="#{el.values}" var="value" varStatus="status">
                                     <h:outputText styleClass="#{el.className}#{el.size} textLeftUpGraph#{status.index}"
                                                   value="#{value}"
@@ -193,6 +194,7 @@
                         <f:facet name="element">
                             <h:panelGroup rendered="#{el.contextMenu}" id="rightData" layout="block" style="height: 100%;">
                                 <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
+                                <h:outputText value="#{graph.getHouseTypeMB(el.name)}" style="display: block; margin-top: -2.8em;"/>
                                 <p:repeat value="#{el.values}" var="value" varStatus="status">
                                     <h:outputText styleClass="#{el.className}#{el.size} textRightGraph#{status.index}"
                                                   value="#{value}"

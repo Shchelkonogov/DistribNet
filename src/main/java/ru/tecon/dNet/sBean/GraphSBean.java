@@ -26,57 +26,58 @@ public class GraphSBean {
 
     private final static Logger LOG = Logger.getLogger(GraphSBean.class.getName());
 
-    private static final String SQL_ALTER = "alter session set NLS_NUMERIC_CHARACTERS = '.,'";
-
-    private static final String SQL_CONSUMERS = "select distinct(obj_id2) as obj_id, " +
-            "(select obj_name from obj_object where obj_id = obj_id2) as obj_name " +
+    private static final String SQL_CONSUMERS = "select distinct constable.obj_id2 as obj_id, " +
+            "(select obj_name from admin.obj_object where obj_id = constable.obj_id2) as obj_name " +
             "from (select x.dev_agr_type, x.obj_id1, x.dev_agr_id2, x.obj_id2 " +
-            "from dev_agr_link x, obj_object xx, dev_agr xxx " +
+            "from admin.dev_agr_link x, admin.obj_object xx, admin.dev_agr xxx " +
             "where xx.obj_id = x.obj_id2 and x.obj_id1 = ? " +
-//            "and x.dev_agr_type = 514 " +
-            "and x.dev_agr_id2 = xxx.agr_id) " +
+            "and x.dev_agr_id2 = xxx.agr_id) constable " +
             "order by obj_name";
-    private static final String SQL_PRODUCER = "select obj_name || 'title=' || (select GET_OBJ_ADDRESS(?) from dual) " +
-            "from obj_object where obj_id = ?";
+    private static final String SQL_PRODUCER = "select obj_name || 'title=' || (select admin.GET_OBJ_ADDRESS(?)) " +
+            "from admin.obj_object where obj_id = ?";
     private static final String SQL_INIT_PARAMS = "select n1 as time, n2 as tech_proc, " +
-            "nvl2(n4, n3||'='||n4, null) as direct_left, n5 as direct_left_color, " +
-            "nvl2(n10, n9||'='||n10, null) as direct_center, n11 as direct_center_color, " +
-            "nvl2(n16, n15||'='||n16, null) as direct_right, n17 as direct_right_color, " +
-            "nvl2(n7, n6||'='||n7, null) as reverse_left, n8 as reverse_left_color, " +
-            "nvl2(n13, n12||'='||n13, null) as reverse_center, n14 as reverse_center_Color, " +
-            "nvl2(n19, n18||'='||n19, null) as reverse_right, n20 as reverse_right_color, " +
-            "nvl2(n22, n21||'='||n22, null) as q, " +
-            "nvl2(n44, n43||'='||n44, null) as t, " +
-            "nvl2(n25, n24||'='||n25, null) as temperature, n26 as temperature_color, " +
-            "nvl2(n28, n27||'='||n28, null) as k0, n29 as k0_color, " +
-            "nvl2(n31, n30||'='||n31, null) as k1, n32 as k1_color, " +
-            "nvl2(n34, n33||'='||n34, null) as k2, n35 as k2_color, " +
-            "nvl2(n37, n36||'='||n37, null) as k3, n38 as k3_color, " +
-            "nvl2(n40, n39||'='||n40, null) as k4, n41 as k4_color " +
-            "from table (mnemo.get_Rnet_CTP_hist_data(?, to_date(?, 'dd-mm-yyyy')))";
-    private static final String SQL_CONNECTIONS = "select nvl2(n21, n1||' '||n20||'='||n21, n1) as name, " +
-            "nvl2(n3, n2||'='||n3, null) as direct_left, n4 as direct_left_color, " +
-            "nvl2(n9, n8||'='||n9, null) as direct_center, n10 as direct_center_color, " +
-            "nvl2(n15, n14||'='||n15, null) as direct_right, n16 as direct_right_color, " +
-            "nvl2(n6, n5||'='||n6, null) as reverse_left, n7 as reverse_left_color, " +
-            "nvl2(n12, n11||'='||n12, null) as reverse_center, n13 as reverse_center_Color, " +
-            "nvl2(n18, n17||'='||n18, null) as reverse_right, n19 as reverse_right_color," +
-            "nvl2(n24, n23||'='||n24, null) as k0, n25 as k0_color, " +
-            "nvl2(n27, n26||'='||n27, null) as k1, n28 as k1_color, " +
-            "nvl2(n30, n29||'='||n30, null) as k2, n31 as k2_color, " +
+            "case WHEN n4 IS null THEN NULL WHEN n4 = '' THEN NULL ELSE n3 ||'=' ||n4 END direct_left, n5 as direct_left_color, " +
+            "case WHEN n10 IS null THEN NULL WHEN n10 = '' THEN NULL ELSE n9 ||'=' ||n10 END direct_center, n11 as direct_center_color, " +
+            "case WHEN n16 IS null THEN NULL WHEN n16 = '' THEN NULL ELSE n15 ||'=' ||n16 END direct_right, n17 as direct_right_color, " +
+            "case WHEN n7 IS null THEN NULL WHEN n7 = '' THEN NULL ELSE n6 ||'=' ||n7 END reverse_left, n8 as reverse_left_color, " +
+            "case WHEN n13 IS null THEN NULL WHEN n13 = '' THEN NULL ELSE n12 ||'=' ||n13 END reverse_center, n14 as reverse_center_Color, " +
+            "case WHEN n19 IS null THEN NULL WHEN n19 = '' THEN NULL ELSE n18 ||'=' ||n19 END reverse_right, n20 as reverse_right_color, " +
+            "case WHEN n22 IS null THEN NULL WHEN n22 = '' THEN NULL ELSE n21 ||'=' ||n22 END q, " +
+            "case WHEN n44 IS null THEN NULL WHEN n44 = '' THEN NULL ELSE n43 ||'=' ||n44 END t, " +
+            "case WHEN n25 IS null THEN NULL WHEN n25 = '' THEN NULL ELSE n24 ||'=' ||n25 END temperature, n26 as temperature_color, " +
+            "case WHEN n28 IS null THEN NULL WHEN n28 = '' THEN NULL ELSE n27 ||'=' ||n28 END k0, n29 as k0_color, " +
+            "case WHEN n31 IS null THEN NULL WHEN n31 = '' THEN NULL ELSE n30 ||'=' ||n31 END k1, n32 as k1_color, " +
+            "case WHEN n34 IS null THEN NULL WHEN n34 = '' THEN NULL ELSE n33 ||'=' ||n34 END k2, n35 as k2_color, " +
+            "case WHEN n37 IS null THEN NULL WHEN n37 = '' THEN NULL ELSE n36 ||'=' ||n37 END k3, n38 as k3_color, " +
+            "case WHEN n40 IS null THEN NULL WHEN n40 = '' THEN NULL ELSE n39 ||'=' ||n40 END k4, n41 as k4_color " +
+            "from mnemo.get_rnet_ctp_hist_data(?, to_date(?, 'dd-mm-yyyy'))";
+    private static final String SQL_CONNECTIONS = "select case WHEN n21 IS null THEN n1 WHEN n21 = '' THEN n1 ELSE n1||' '||n20||'='||n21 END name, " +
+            "case WHEN n3 IS null THEN NULL WHEN n3 = '' THEN NULL ELSE n2||'='||n3 END direct_left, n4 as direct_left_color, " +
+            "case WHEN n9 IS null THEN NULL WHEN n9 = '' THEN NULL ELSE n8||'='||n9 END direct_center, n10 as direct_center_color, " +
+            "case WHEN n15 IS null THEN NULL WHEN n15 = '' THEN NULL ELSE n14||'='||n15 END direct_right, n16 as direct_right_color, " +
+            "case WHEN n6 IS null THEN NULL WHEN n6 = '' THEN NULL ELSE n5||'='||n6 END reverse_left, n7 as reverse_left_color, " +
+            "case WHEN n12 IS null THEN NULL WHEN n12 = '' THEN NULL ELSE n11||'='||n12 END reverse_center, n13 as reverse_center_Color, " +
+            "case WHEN n18 IS null THEN NULL WHEN n18 = '' THEN NULL ELSE n17||'='||n18 END reverse_right, n19 as reverse_right_color," +
+            "case WHEN n24 IS null THEN NULL WHEN n24 = '' THEN NULL ELSE n23||'='||n24 END k0, n25 as k0_color, " +
+            "case WHEN n27 IS null THEN NULL WHEN n27 = '' THEN NULL ELSE n26||'='||n27 END k1, n28 as k1_color, " +
+            "case WHEN n30 IS null THEN NULL WHEN n30 = '' THEN NULL ELSE n29||'='||n30 END k2, n31 as k2_color, " +
             "n21 as energy, n42 as connectionAggregateId " +
-            "from table (mnemo.get_Rnet_UU_hist_data(?, ?, to_date(?, 'dd-mm-yyyy')))";
-    private static final String SQL_REDIRECT = "select mnemo_ip, mnemo_port from dz_sys_param";
-    private static final String SELECT_REDIRECT_TD_URL = "select td_url from dz_sys_param";
-    private static final String SQL_CHECK_SUMMER = "select decode(season, 'LETO', '1', '0') " +
-            "from (select season from sys_season_log " +
+            "from mnemo.get_rnet_uu_hist_data(?, ?, to_date(?, 'dd-mm-yyyy'))";
+    private static final String SQL_REDIRECT = "select mnemo_ip, mnemo_port from admin.dz_sys_param";
+    private static final String SELECT_REDIRECT_TD_URL = "select td_url from admin.dz_sys_param";
+    private static final String SQL_CHECK_SUMMER = "select case WHEN season = 'LETO'::varchar THEN true ELSE false END CHECK_SUMMER " +
+            "from (select season from admin.sys_season_log " +
             "where updated_when < to_date(?, 'dd-mm-yyyy') " +
-            "order by updated_when desc) " +
-            "where rownum = 1";
-    private static final String SQL_PROBLEM_IDS = "select problem_id from table(dsp_0090t.sel_obj_problem_d(?, to_date(?, 'dd-mm-yyyy')))";
+            "order by updated_when desc) cstable " +
+            "limit 1";
+    private static final String SQL_PROBLEM_IDS = "select problem_id from dsp_0090t.sel_obj_problem_d(?, to_date(?, 'dd-mm-yyyy'))";
     private static final String SQL_PROBLEMS = "select techproc, main_problem_name, color, visible, a.main_problem_id from dz_rs_problem a, dz_rs_main_problem b " +
             "where b.main_problem_id in (?) and a.main_problem_id = b.main_problem_id";
-    private static final String SQL_PROBLEMS_DESCRIPTION = "select mnemo.get_Rnet_Problem_data(?, ?, to_date(?, 'dd-mm-yyyy')) from dual";
+    private static final String SQL_PROBLEMS_DESCRIPTION = "select mnemo.get_rnet_problem_data(?, ?, to_date(?, 'dd-mm-yyyy'))";
+    private static final String BALANCE_AFFILIATION = "select val from admin.obj_type_prop_val_vie where obj_prop_name='На балансе' and obj_id= " +
+            "(select obj_id from admin.obj_object where obj_name=?) limit 1";
+    private static final String HOUSE_TYPE = "select val from admin.obj_type_prop_val_vie where obj_prop_name='Категория строения' and obj_id= " +
+            "(select obj_id from admin.obj_object where obj_name=?) limit 1";
 
     @Resource(name = "jdbc/DataSource")
     private DataSource ds;
@@ -91,20 +92,20 @@ public class GraphSBean {
         LOG.info("loadInitData start");
         GraphElement init = null;
         try (Connection connect = ds.getConnection();
-             PreparedStatement stmAlter = connect.prepareStatement(SQL_ALTER);
              PreparedStatement stm = connect.prepareStatement(SQL_INIT_PARAMS)) {
-            stmAlter.executeQuery();
+
             stm.setInt(1, objectId);
             stm.setString(2, date);
             ResultSet res = stm.executeQuery();
+
             if (res.next()) {
                 init = new GraphElement(0, null, date);
 
                 Connector connector = new Connector((
                         (Objects.nonNull(res.getString("q")) ? res.getString("q") : "") +
-                        " " +
-                        (Objects.nonNull(res.getString("t")) ? res.getString("t") : "")
-                    ).trim());
+                                " " +
+                                (Objects.nonNull(res.getString("t")) ? res.getString("t") : "")
+                ).trim());
                 connector.setTemperature(new ConnectorValue(res.getString("temperature"), res.getString("temperature_color")));
                 if (res.getString(3) != null) {
                     connector.getIn()[0] = new ConnectorValue(res.getString(3), res.getString(4));
@@ -130,7 +131,6 @@ public class GraphSBean {
                 loadCoefficient(connector, res, 3);
                 loadCoefficient(connector, res, 4);
                 init.addConnect(connector);
-
                 if (init.getDate() == null) {
                     LOG.warning("loadInitData Источник ни разу не выходил на связь!");
                     throw new GraphLoadException("Источник ни разу не выходил на связь!");
@@ -246,9 +246,7 @@ public class GraphSBean {
     private void loadConnections(GraphElement producer) throws GraphLoadException {
         LOG.info("loadConnections start");
         try (Connection connect = ds.getConnection();
-             PreparedStatement stmAlter = connect.prepareStatement(SQL_ALTER);
              PreparedStatement stm = connect.prepareStatement(SQL_CONNECTIONS)) {
-            stmAlter.executeQuery();
             doConnections(stm, producer, producer.getDate(), producer.getObjectId());
 
             for (GraphElement el: producer.getChildren()) {
@@ -313,7 +311,7 @@ public class GraphSBean {
      */
     public void getProblems(Map<String, Set<Problem>> problems, int id, String date) {
         try (Connection connect = ds.getConnection();
-                PreparedStatement stm = connect.prepareStatement(SQL_PROBLEM_IDS)) {
+             PreparedStatement stm = connect.prepareStatement(SQL_PROBLEM_IDS)) {
             stm.setInt(1, id);
             stm.setString(2, date);
 
@@ -368,7 +366,7 @@ public class GraphSBean {
     public void getProblemDescription(Integer problemId, List<Integer> ids, String date, Map<Integer, String> result) {
         LOG.info("getProblemDescription: start");
         try (Connection connect = ds.getConnection();
-                PreparedStatement stm = connect.prepareStatement(SQL_PROBLEMS_DESCRIPTION)) {
+             PreparedStatement stm = connect.prepareStatement(SQL_PROBLEMS_DESCRIPTION)) {
             ResultSet res;
 
             for (Integer id: ids) {
@@ -413,6 +411,43 @@ public class GraphSBean {
     public String getRedirectUrlTD() {
         try (Connection connect = ds.getConnection();
              PreparedStatement stm = connect.prepareStatement(SELECT_REDIRECT_TD_URL)) {
+            ResultSet res = stm.executeQuery();
+            if (res.next()) {
+                return res.getString(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    /**
+     * Метод возвращает балансовую принадлежность ЦТП
+     * @return значение балансовой принадлежности
+     */
+    public String getBalanceAffiliation(String objName) {
+        try (Connection connect = ds.getConnection();
+             PreparedStatement stm = connect.prepareStatement(BALANCE_AFFILIATION)) {
+            stm.setString(1, objName);
+            ResultSet res = stm.executeQuery();
+            if (res.next()) {
+                return res.getString(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Метод возвращает тип дома
+     * @return тип дома
+     */
+    public String getHouseType(String objName) {
+        try (Connection connect = ds.getConnection();
+             PreparedStatement stm = connect.prepareStatement(HOUSE_TYPE)) {
+            stm.setString(1, objName);
             ResultSet res = stm.executeQuery();
             if (res.next()) {
                 return res.getString(1);
