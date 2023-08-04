@@ -26,8 +26,8 @@ public class ReportBean implements ReportBeanLocal {
     private static final String SELECT_CTP = "select obj_name from admin.obj_object where obj_id = ?";
     private static final String SELECT_CONNECT_SCHEMA = "select val from admin.obj_object_properties " +
             "where obj_type_id = 1 and prop_id = 20 and obj_id = ?";
-    private static final String SELECT_FILIAL = "select get_obj_filial(?)";
-    private static final String SELECT_COMPANY = "select get_obj_pred(?)";
+    private static final String SELECT_FILIAL = "select admin.get_obj_filial(?)";
+    private static final String SELECT_COMPANY = "select admin.get_obj_pred(?)";
     private static final String SELECT_SOURCE = "select val from admin.obj_object_properties " +
             "where obj_type_id = 1 and prop_id = 14 and obj_id = ?";
     private static final String SELECT_ADDRESS = "select admin.get_obj_address(?)";
@@ -44,7 +44,7 @@ public class ReportBean implements ReportBeanLocal {
     private static final String SELECT_IN_PARAMETERS = "select * from dsp_0045t.get_rnet_ctp_otch_data(?, ?, ?)";
     private static final String SELECT_OUT_PARAMETERS = "select * from dsp_0045t.get_rnet_ctp_out_otch_data(?, ?, ?)";
 
-    private static final String SELECT_VALUE = "call dsp_0045t.get_rnet_uu_otch_data(?, ?, ?, ?, ?, ?, ?)";
+    private static final String SELECT_VALUE = "call dsp_0045t.get_rnet_uu_otch_data(?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String SELECT_TOTAL_DATA = "select * from dsp_0045t.get_Rnet_CTP_otch_data_itog(?, ?, ?)";
 
@@ -112,20 +112,23 @@ public class ReportBean implements ReportBeanLocal {
     public CellValue getValue(int parentID, int object, int id, int statId, LocalDate startDate, LocalDate endDate) {
         try (Connection connection = ds.getConnection();
              CallableStatement cStm = connection.prepareCall(SELECT_VALUE)) {
-            cStm.registerOutParameter(1, Types.VARCHAR);
-            cStm.setInt(2, parentID);
-            cStm.setInt(3, object);
-            cStm.setInt(4, id);
-            cStm.setInt(5, statId);
-            cStm.setDate(6, Date.valueOf(startDate));
-            cStm.setDate(7, Date.valueOf(endDate));
-            cStm.registerOutParameter(8, Types.INTEGER);
+            cStm.setInt(1, parentID);
+            cStm.setInt(2, object);
+            cStm.setInt(3, id);
+            cStm.setInt(4, statId);
+            cStm.setDate(5, Date.valueOf(startDate));
+            cStm.setDate(6, Date.valueOf(endDate));
+            cStm.setNull(7, Types.SMALLINT);
+            cStm.setNull(8, Types.VARCHAR);
+            cStm.registerOutParameter(7, Types.SMALLINT);
+            cStm.registerOutParameter(8, Types.VARCHAR);
+
             cStm.executeUpdate();
 
             try {
-                return new CellValue(new BigDecimal(cStm.getString(1).trim()).setScale(2, RoundingMode.HALF_EVEN).toString(), cStm.getInt(8));
+                return new CellValue(new BigDecimal(cStm.getString(1).trim()).setScale(2, RoundingMode.HALF_UP).toString(), cStm.getInt(8));
             } catch (Exception ignore) {
-                return new CellValue("", 0);
+                return new CellValue(null, 0);
             }
         } catch (SQLException e) {
             LOG.log(Level.WARNING, "error load data for object: " + object, e);
@@ -146,8 +149,16 @@ public class ReportBean implements ReportBeanLocal {
 
             if (res.next()) {
                 for (int i = 1; i < 12; i++) {
-                    result.add(res.getString("n" + i));
-                    result.add(res.getString("n" + i + "_col"));
+                    if (res.getString("n" + i) == null) {
+                        result.add("0");
+                    } else {
+                        result.add(res.getString("n" + i));
+                    }
+                    if (res.getString("n" + i + "_col") == null) {
+                        result.add("0");
+                    } else {
+                        result.add(res.getString("n" + i + "_col"));
+                    }
                 }
             }
         } catch (SQLException e) {

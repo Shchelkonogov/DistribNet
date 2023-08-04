@@ -210,7 +210,7 @@ public final class Report {
                     CellValue cellValue = loader.getValue(object, objectNames.get(j).getId(), outParams.get(i).getId(),
                             outParams.get(i).getStatId(), startDate, endDate);
 
-                    if (cellValue != null) {
+                    if (cellValue.getValue() != null) {
                         String value = cellValue.getValue();
                         createStyledCell(row, 6 + j, value, styleMap.get(getStyleName(cellValue.getColorIndex())));
 
