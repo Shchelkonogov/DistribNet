@@ -22,7 +22,8 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 public final class Report {
-
+    //TODO после добавления необходимых функций раскомментировать строки 37, 44-48, 55.
+    // Удалить строки 38, 56 и временный класс createEmptySheet (358-365 строки).
     private static final Logger LOGGER = Logger.getLogger(Report.class.getName());
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
@@ -34,23 +35,26 @@ public final class Report {
         PropertyTemplate pt = new PropertyTemplate();
 
         LOGGER.info("start month");
-        createSheet(wb, startDate, endDate, object, loader, pt, getStyles(wb));
+//        createSheet(wb, startDate, endDate, object, loader, pt, getStyles(wb));
+        createEmptySheet(wb, startDate, endDate, object, loader, pt, getStyles(wb));
+
         LOGGER.info("end month");
 
         LocalDate end = Stream.of(endDate, LocalDate.now()).min(LocalDate::compareTo).get();
 
-        for (LocalDate date = startDate; date.isBefore(end.plusDays(1)); date = date.plusDays(1)) {
-            LOGGER.info("start " + date);
-            createSheet(wb, date, date, object, loader, pt, getStyles(wb));
-            LOGGER.info("end " + date);
-        }
+//        for (LocalDate date = startDate; date.isBefore(end.plusDays(1)); date = date.plusDays(1)) {
+//            LOGGER.info("start " + date);
+//            createSheet(wb, date, date, object, loader, pt, getStyles(wb));
+//            LOGGER.info("end " + date);
+//        }
 
         return wb;
     }
 
     public static Workbook createDayReport(int object, LocalDate reportDate, ReportBeanLocal loader) {
         Workbook wb = new XSSFWorkbook();
-        createSheet(wb, reportDate, reportDate, object, loader, new PropertyTemplate(), getStyles(wb));
+//        createSheet(wb, reportDate, reportDate, object, loader, new PropertyTemplate(), getStyles(wb));
+        createEmptySheet(wb, reportDate, reportDate, object, loader, new PropertyTemplate(), getStyles(wb));
         return wb;
     }
 
@@ -210,7 +214,7 @@ public final class Report {
                     CellValue cellValue = loader.getValue(object, objectNames.get(j).getId(), outParams.get(i).getId(),
                             outParams.get(i).getStatId(), startDate, endDate);
 
-                    if (cellValue.getValue() != null) {
+                    if (cellValue != null) {
                         String value = cellValue.getValue();
                         createStyledCell(row, 6 + j, value, styleMap.get(getStyleName(cellValue.getColorIndex())));
 
@@ -349,5 +353,14 @@ public final class Report {
         style.setWrapText(true);
         result.put(MyStyleName.BOLD_CENTER, style);
         return result;
+    }
+
+    private static void createEmptySheet(Workbook wb, LocalDate startDate, LocalDate endDate, int object, ReportBeanLocal loader,
+                                    PropertyTemplate pt, Map<MyStyleName, CellStyle> styleMap) {
+
+        Sheet sheet = wb.createSheet("Отчет находится в стадии разработки ");
+
+        Row row = sheet.createRow(1);
+        createStyledCell(row, 2, "Отчет находится в стадии разработки", styleMap.get(MyStyleName.BOLD));
     }
 }

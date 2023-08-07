@@ -118,17 +118,14 @@ public class ReportBean implements ReportBeanLocal {
             cStm.setInt(4, statId);
             cStm.setDate(5, Date.valueOf(startDate));
             cStm.setDate(6, Date.valueOf(endDate));
-            cStm.setNull(7, Types.SMALLINT);
-            cStm.setNull(8, Types.VARCHAR);
             cStm.registerOutParameter(7, Types.SMALLINT);
             cStm.registerOutParameter(8, Types.VARCHAR);
-
             cStm.executeUpdate();
 
             try {
-                return new CellValue(new BigDecimal(cStm.getString(1).trim()).setScale(2, RoundingMode.HALF_UP).toString(), cStm.getInt(8));
+                return new CellValue(new BigDecimal(cStm.getString(1).trim()).setScale(2, RoundingMode.HALF_EVEN).toString(), cStm.getInt(8));
             } catch (Exception ignore) {
-                return new CellValue(null, 0);
+                return new CellValue("", 0);
             }
         } catch (SQLException e) {
             LOG.log(Level.WARNING, "error load data for object: " + object, e);
@@ -149,16 +146,8 @@ public class ReportBean implements ReportBeanLocal {
 
             if (res.next()) {
                 for (int i = 1; i < 12; i++) {
-                    if (res.getString("n" + i) == null) {
-                        result.add("0");
-                    } else {
-                        result.add(res.getString("n" + i));
-                    }
-                    if (res.getString("n" + i + "_col") == null) {
-                        result.add("0");
-                    } else {
-                        result.add(res.getString("n" + i + "_col"));
-                    }
+                    result.add(res.getString("n" + i));
+                    result.add(res.getString("n" + i + "_col"));
                 }
             }
         } catch (SQLException e) {
