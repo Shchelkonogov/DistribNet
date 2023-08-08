@@ -26,8 +26,8 @@ public class ReportBean implements ReportBeanLocal {
     private static final String SELECT_CTP = "select obj_name from admin.obj_object where obj_id = ?";
     private static final String SELECT_CONNECT_SCHEMA = "select val from admin.obj_object_properties " +
             "where obj_type_id = 1 and prop_id = 20 and obj_id = ?";
-    private static final String SELECT_FILIAL = "select get_obj_filial(?)";
-    private static final String SELECT_COMPANY = "select get_obj_pred(?)";
+    private static final String SELECT_FILIAL = "select admin.get_obj_filial(?)";
+    private static final String SELECT_COMPANY = "select admin.get_obj_pred(?)";
     private static final String SELECT_SOURCE = "select val from admin.obj_object_properties " +
             "where obj_type_id = 1 and prop_id = 14 and obj_id = ?";
     private static final String SELECT_ADDRESS = "select admin.get_obj_address(?)";
@@ -44,7 +44,7 @@ public class ReportBean implements ReportBeanLocal {
     private static final String SELECT_IN_PARAMETERS = "select * from dsp_0045t.get_rnet_ctp_otch_data(?, ?, ?)";
     private static final String SELECT_OUT_PARAMETERS = "select * from dsp_0045t.get_rnet_ctp_out_otch_data(?, ?, ?)";
 
-    private static final String SELECT_VALUE = "call dsp_0045t.get_rnet_uu_otch_data(?, ?, ?, ?, ?, ?, ?)";
+    private static final String SELECT_VALUE = "call dsp_0045t.get_rnet_uu_otch_data(?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String SELECT_TOTAL_DATA = "select * from dsp_0045t.get_Rnet_CTP_otch_data_itog(?, ?, ?)";
 
@@ -112,14 +112,14 @@ public class ReportBean implements ReportBeanLocal {
     public CellValue getValue(int parentID, int object, int id, int statId, LocalDate startDate, LocalDate endDate) {
         try (Connection connection = ds.getConnection();
              CallableStatement cStm = connection.prepareCall(SELECT_VALUE)) {
-            cStm.registerOutParameter(1, Types.VARCHAR);
-            cStm.setInt(2, parentID);
-            cStm.setInt(3, object);
-            cStm.setInt(4, id);
-            cStm.setInt(5, statId);
-            cStm.setDate(6, Date.valueOf(startDate));
-            cStm.setDate(7, Date.valueOf(endDate));
-            cStm.registerOutParameter(8, Types.INTEGER);
+            cStm.setInt(1, parentID);
+            cStm.setInt(2, object);
+            cStm.setInt(3, id);
+            cStm.setInt(4, statId);
+            cStm.setDate(5, Date.valueOf(startDate));
+            cStm.setDate(6, Date.valueOf(endDate));
+            cStm.registerOutParameter(7, Types.SMALLINT);
+            cStm.registerOutParameter(8, Types.VARCHAR);
             cStm.executeUpdate();
 
             try {

@@ -113,7 +113,7 @@ public class GraphElement implements Serializable {
                             .orElse(0.0))
                     .sum();
 
-            return e.getName() + " ΣQ=" + new BigDecimal(energySum).setScale(1, RoundingMode.HALF_EVEN);
+            return e.getName() + " ΣQ=" + new BigDecimal(energySum).setScale(1, RoundingMode.HALF_UP);
         }).collect(Collectors.toList());
     }
 
@@ -145,7 +145,7 @@ public class GraphElement implements Serializable {
                                 .orElse(0.0))
                         .sum();
 
-                result += "Σ" + Graphs.getSumNamePrefix(name) + "под=" + new BigDecimal(energySum).setScale(1, RoundingMode.HALF_EVEN) + " ";
+                result += "Σ" + Graphs.getSumNamePrefix(name) + "под=" + new BigDecimal(energySum).setScale(1, RoundingMode.HALF_UP) + " ";
             }
 
             isData = getChildren().stream()
@@ -164,7 +164,7 @@ public class GraphElement implements Serializable {
                                 .orElse(0.0))
                         .sum();
 
-                result += "Σ" + Graphs.getSumNamePrefix(name) + "обр=" + new BigDecimal(energySum).setScale(1, RoundingMode.HALF_EVEN);
+                result += "Σ" + Graphs.getSumNamePrefix(name) + "обр=" + new BigDecimal(energySum).setScale(1, RoundingMode.HALF_UP);
             }
 
             return result;
