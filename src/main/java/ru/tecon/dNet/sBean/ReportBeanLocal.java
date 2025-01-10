@@ -1,10 +1,10 @@
 package ru.tecon.dNet.sBean;
 
+import jakarta.ejb.Local;
 import ru.tecon.dNet.report.model.CellValue;
 import ru.tecon.dNet.report.model.ConsumerModel;
 import ru.tecon.dNet.report.model.DataModel;
 
-import javax.ejb.Local;
 import java.time.LocalDate;
 import java.util.List;
 

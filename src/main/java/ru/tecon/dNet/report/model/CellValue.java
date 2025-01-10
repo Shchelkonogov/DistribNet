@@ -8,8 +8,8 @@ import java.util.StringJoiner;
  */
 public class CellValue {
 
-    private String value;
-    private int colorIndex;
+    private final String value;
+    private final int colorIndex;
 
     public CellValue(String value, int colorIndex) {
         this.value = value;

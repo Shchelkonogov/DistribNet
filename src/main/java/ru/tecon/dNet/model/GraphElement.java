@@ -12,10 +12,10 @@ import java.util.stream.Collectors;
 
 public class GraphElement implements Serializable {
 
-    private int objectId;
+    private final int objectId;
     private String name;
     private String tooltip;
-    private List<Connector> connectors = new ArrayList<>();
+    private final List<Connector> connectors = new ArrayList<>();
     private List<GraphElement> children;
     private String date;
     private int trimSize;

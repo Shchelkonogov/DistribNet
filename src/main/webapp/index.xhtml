@@ -61,38 +61,38 @@
                             <h:panelGroup rendered="#{el.contextMenu}" id="leftData" layout="block" style="height: 100%;">
                                 <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
                                 <h:outputText value="#{graph.getBalanceAffiliationMB(el.name)}" style="display: block; margin-top: -2.8em;"/>
-                                <p:repeat value="#{el.values}" var="value" varStatus="status">
+                                <ui:repeat value="#{el.values}" var="value" varStatus="status">
                                     <h:outputText styleClass="#{el.className}#{el.size} textLeftUpGraph#{status.index}"
                                                   value="#{value}"
                                                   style="position: absolute;"/>
-                                </p:repeat>
-                                <p:repeat value="#{el.sumValues}" var="sumValue" varStatus="status">
+                                </ui:repeat>
+                                <ui:repeat value="#{el.sumValues}" var="sumValue" varStatus="status">
                                     <h:outputText styleClass="#{el.className}#{el.size} textLeftDownGraph#{status.index}"
                                                   value="#{sumValue}"
                                                   style="position: absolute;"/>
-                                </p:repeat>
+                                </ui:repeat>
                             </h:panelGroup>
                             <h:panelGroup rendered="#{!el.contextMenu}" layout="block" style="height: 100%;">
                                 <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
-                                <p:repeat value="#{el.values}" var="value" varStatus="status">
+                                <ui:repeat value="#{el.values}" var="value" varStatus="status">
                                     <h:outputText styleClass="#{el.className}#{el.size} textLeftUpGraph#{status.index}"
                                                   value="#{value}"
                                                   style="position: absolute;"/>
-                                </p:repeat>
-                                <p:repeat value="#{el.sumValues}" var="sumValue" varStatus="status">
+                                </ui:repeat>
+                                <ui:repeat value="#{el.sumValues}" var="sumValue" varStatus="status">
                                     <h:outputText styleClass="#{el.className}#{el.size} textLeftDownGraph#{status.index}"
                                                   value="#{sumValue}"
                                                   style="position: absolute;"/>
-                                </p:repeat>
+                                </ui:repeat>
                             </h:panelGroup>
                         </f:facet>
                     </p:diagram>
 
-                    <p:repeat value="#{graph.producerIndex}" var="el" varStatus="status">
+                    <ui:repeat value="#{graph.producerIndex}" var="el" varStatus="status">
                         <h:outputText styleClass="ui-widget #{el.color} init#{status.index}"
                                       rendered="#{el.value != null}"
                                       value="#{el.value}"/>
-                    </p:repeat>
+                    </ui:repeat>
 
                     <h:outputText style="position: absolute;
                                         top: 48px;
@@ -113,11 +113,11 @@
                     </p:selectOneRadio>
 
                     <div style="height: 300px; width: 400px; margin: 0 auto; overflow: auto;">
-                        <p:repeat value="#{graph.problemsName}" var="pr">
+                        <ui:repeat value="#{graph.problemsName}" var="pr">
                             <h:panelGrid columns="2" columnClasses="logo, detail" style="width: 100%;" >
                                     <h:outputText style="font-size: 20px;" value="#{pr}" />
                                 <p:outputPanel>
-                                    <p:repeat value="#{graph.getProblemsValues(pr)}" var="prName" varStatus="prNameStatus">
+                                    <ui:repeat value="#{graph.getProblemsValues(pr)}" var="prName" varStatus="prNameStatus">
                                         <h:panelGrid columns="3" columnClasses="c1,c2,c1" style="width: 100%;">
 <!--                                        попросили убрать окраску background-color: #{prName.color};-->
                                             <h:outputText style="font-size: 16px;"
@@ -128,11 +128,11 @@
                                             <p:radioButton rendered="false" for="settingsPanel:customRadioProblems"
                                                            itemIndex="#{graph.getProblemIndex(pr, prName.name)}" />
                                         </h:panelGrid>
-                                    </p:repeat>
+                                    </ui:repeat>
                                 </p:outputPanel>
                             </h:panelGrid>
                             <hr />
-                        </p:repeat>
+                        </ui:repeat>
                     </div>
 
                     <table style="width: 100%; margin-top: 10px;">
@@ -169,7 +169,7 @@
                                           icon="pi pi-copy" target="_blank" title="Месячный отчет"/>
                             </td>
                             <td style="width: 35px; text-align: right;">
-                                <p:button outcome="index.xhtml?object=#{graph.object}&amp;date=#{graph.beforeDate}"
+                                <p:button outcome="index.xhtml?object=#{graph.object}&amp;date=#{graph.beforeDate}&amp;sessionId=#{graph.sessionId}"
                                           icon="pi pi-angle-left"/>
                             </td>
                             <td style="width: 80px; text-align: center;">
@@ -178,7 +178,7 @@
                                 </p:calendar>
                             </td>
                             <td style="width: 35px; text-align: left;">
-                                <p:button outcome="index.xhtml?object=#{graph.object}&amp;date=#{graph.nextDate}"
+                                <p:button outcome="index.xhtml?object=#{graph.object}&amp;date=#{graph.nextDate}&amp;sessionId=#{graph.sessionId}"
                                           icon="pi pi-angle-right" disabled="#{graph.buttonDisabled}"/>
                             </td>
                         </tr>
@@ -195,11 +195,11 @@
                             <h:panelGroup rendered="#{el.contextMenu}" id="rightData" layout="block" style="height: 100%;">
                                 <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
                                 <h:outputText value="#{graph.getHouseTypeMB(el.name)}" style="display: block; margin-top: -2.8em;"/>
-                                <p:repeat value="#{el.values}" var="value" varStatus="status">
+                                <ui:repeat value="#{el.values}" var="value" varStatus="status">
                                     <h:outputText styleClass="#{el.className}#{el.size} textRightGraph#{status.index}"
                                                   value="#{value}"
                                                   style="position: absolute;"/>
-                                </p:repeat>
+                                </ui:repeat>
                                 <h:outputText style="display: block; margin-top: -1em; margin-left: 10em;
                                                 height: 10px; border-radius: 5px; background-color: #{graph.selectProblemColor};"
                                               rendered="#{el.problemDesc != null}" />
@@ -208,11 +208,11 @@
                             </h:panelGroup>
                             <h:panelGroup rendered="#{!el.contextMenu}" layout="block" style="height: 100%;">
                                 <h:outputText value="#{el.name}" style="display: block; margin-top: -1em;"/>
-                                <p:repeat value="#{el.values}" var="value" varStatus="status">
+                                <ui:repeat value="#{el.values}" var="value" varStatus="status">
                                     <h:outputText styleClass="#{el.className}#{el.size} textRightGraph#{status.index}"
                                                   value="#{value}"
                                                   style="position: absolute;"/>
-                                </p:repeat>
+                                </ui:repeat>
                                 <h:outputText style="display: block; margin-top: -1em; margin-left: 10em;
                                                 height: 10px; border-radius: 5px; background-color: #{graph.selectProblemColor};"
                                               rendered="#{el.problemDesc != null}" />
@@ -227,11 +227,11 @@
     </table>
 
     <h:form id="tooltip-form">
-        <p:repeat value="#{graph.tooltips}" var="tooltip">
+        <ui:repeat value="#{graph.tooltips}" var="tooltip">
             <pe:tooltip for="@(##{tooltip.id})" value="#{tooltip.value}"
                         mouseTracking="true" myPosition="top left" adjustX="10" adjustY="10"
                         styleClass="qtip qtip-dark qtip-rounded qtip-shadow"/>
-        </p:repeat>
+        </ui:repeat>
     </h:form>
 
     <h:form>

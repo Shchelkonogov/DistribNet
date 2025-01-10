@@ -1,12 +1,12 @@
 package ru.tecon.dNet.sBean;
 
+import jakarta.annotation.Resource;
+import jakarta.ejb.Local;
+import jakarta.ejb.Stateless;
 import ru.tecon.dNet.report.model.CellValue;
 import ru.tecon.dNet.report.model.ConsumerModel;
 import ru.tecon.dNet.report.model.DataModel;
 
-import javax.annotation.Resource;
-import javax.ejb.Local;
-import javax.ejb.Stateless;
 import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -34,10 +34,9 @@ public class ReportBean implements ReportBeanLocal {
 
     private static final String SELECT_CONSUMERS = "select distinct constable.obj_id2 as obj_id, " +
             "(select obj_name from admin.obj_object where obj_id = constable.obj_id2) as obj_name " +
-            "from (select x.dev_agr_type, x.obj_id1, x.dev_agr_id2, x.obj_id2 " +
+            "from (select x.obj_id2 " +
             "from admin.dev_agr_link x, admin.obj_object xx, admin.dev_agr xxx " +
             "where xx.obj_id = x.obj_id2 and x.obj_id1 = ? " +
-//            "and x.dev_agr_type = 514 " +
             "and x.dev_agr_id2 = xxx.agr_id) constable " +
             "order by obj_name";
 

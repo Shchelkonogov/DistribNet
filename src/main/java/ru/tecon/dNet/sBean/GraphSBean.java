@@ -1,20 +1,21 @@
 package ru.tecon.dNet.sBean;
 
+import jakarta.annotation.Resource;
+import jakarta.ejb.LocalBean;
+import jakarta.ejb.Stateless;
 import ru.tecon.dNet.exception.GraphLoadException;
 import ru.tecon.dNet.model.Connector;
 import ru.tecon.dNet.model.ConnectorValue;
 import ru.tecon.dNet.model.GraphElement;
 import ru.tecon.dNet.model.Problem;
 
-import javax.annotation.Resource;
-import javax.ejb.LocalBean;
-import javax.ejb.Stateless;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -25,6 +26,8 @@ import java.util.logging.Logger;
 public class GraphSBean {
 
     private final static Logger LOG = Logger.getLogger(GraphSBean.class.getName());
+
+    private static final boolean DISABLED_PROBLEM = true;
 
     private static final String SQL_CONSUMERS = "select distinct constable.obj_id2 as obj_id, " +
             "(select obj_name from admin.obj_object where obj_id = constable.obj_id2) as obj_name " +
@@ -63,8 +66,7 @@ public class GraphSBean {
             "case WHEN n30 IS null THEN NULL WHEN n30 = '' THEN NULL ELSE n29||'='||n30 END k2, n31 as k2_color, " +
             "n21 as energy, n42 as connectionAggregateId " +
             "from mnemo.get_rnet_uu_hist_data(?, ?, to_date(?, 'dd-mm-yyyy'))";
-    private static final String SQL_REDIRECT = "select mnemo_ip, mnemo_port from admin.dz_sys_param";
-    private static final String SELECT_REDIRECT_TD_URL = "select td_url from admin.dz_sys_param";
+    private static final String SQL_REDIRECT = "select * from m_adm.get_td_application_url(?)";
     private static final String SQL_CHECK_SUMMER = "select case WHEN season = 'LETO'::varchar THEN true ELSE false END CHECK_SUMMER " +
             "from (select season from admin.sys_season_log " +
             "where updated_when < to_date(?, 'dd-mm-yyyy') " +
@@ -253,12 +255,12 @@ public class GraphSBean {
                 doConnections(stm, el, producer.getDate(), producer.getObjectId());
             }
 
-            if (producer.getConnectors().size() == 0) {
+            if (producer.getConnectors().isEmpty()) {
                 LOG.warning("loadConnections: Источник не слинкован!");
                 throw new GraphLoadException("Источник не слинкован!");
             }
-            producer.getChildren().removeIf(consumer -> consumer.getConnectors().size() == 0);
-            if (producer.getChildren().size() == 0) {
+            producer.getChildren().removeIf(consumer -> consumer.getConnectors().isEmpty());
+            if (producer.getChildren().isEmpty()) {
                 LOG.warning("loadConnections: Потребители источника не слинкованы!");
                 throw new GraphLoadException("Потребители источника не слинкованы!");
             }
@@ -310,6 +312,10 @@ public class GraphSBean {
      * @param date дата по которой смотрим проблемы (dd-mm-yyyy)
      */
     public void getProblems(Map<String, Set<Problem>> problems, int id, String date) {
+        if (DISABLED_PROBLEM) {
+            LOG.info("problems is disabled");
+            return;
+        }
         try (Connection connect = ds.getConnection();
              PreparedStatement stm = connect.prepareStatement(SQL_PROBLEM_IDS)) {
             stm.setInt(1, id);
@@ -348,11 +354,11 @@ public class GraphSBean {
                         }
                     }
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    LOG.log(Level.WARNING, "Error load problem", e);
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.log(Level.WARNING, "Error load problem", e);
         }
     }
 
@@ -386,58 +392,21 @@ public class GraphSBean {
     }
 
     /**
-     * Метод возвращает url для перехода на мнемосхему объектов
-     * при нажатии на объект
-     * @param object id объекта
-     * @return url аддрес
-     */
-    public String getRedirectUrl(String object) {
-        try (Connection connect = ds.getConnection();
-             PreparedStatement stm = connect.prepareStatement(SQL_REDIRECT)) {
-            ResultSet res = stm.executeQuery();
-            if (res.next()) {
-                return "http://" + res.getString(1) + ":" + res.getString(2) + "/mnemo/?objectId=" + object;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    /**
-     * Метод возвращает url для перехода систему ТД
+     * Метод возвращает url для перехода на смежную систему
+     *
+     * @param type тип формы
      * @return url адрес
      */
-    public String getRedirectUrlTD() {
-        try (Connection connect = ds.getConnection();
-             PreparedStatement stm = connect.prepareStatement(SELECT_REDIRECT_TD_URL)) {
-            ResultSet res = stm.executeQuery();
-            if (res.next()) {
-                return res.getString(1);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public String getRedirectUrl(String type) {
+        return executeSql(SQL_REDIRECT, type);
     }
-
 
     /**
      * Метод возвращает балансовую принадлежность ЦТП
      * @return значение балансовой принадлежности
      */
     public String getBalanceAffiliation(String objName) {
-        try (Connection connect = ds.getConnection();
-             PreparedStatement stm = connect.prepareStatement(BALANCE_AFFILIATION)) {
-            stm.setString(1, objName);
-            ResultSet res = stm.executeQuery();
-            if (res.next()) {
-                return res.getString(1);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return executeSql(BALANCE_AFFILIATION, objName);
     }
 
     /**
@@ -445,15 +414,19 @@ public class GraphSBean {
      * @return тип дома
      */
     public String getHouseType(String objName) {
+        return executeSql(HOUSE_TYPE, objName);
+    }
+
+    private String executeSql(String sql, String param) {
         try (Connection connect = ds.getConnection();
-             PreparedStatement stm = connect.prepareStatement(HOUSE_TYPE)) {
-            stm.setString(1, objName);
+             PreparedStatement stm = connect.prepareStatement(sql)) {
+            stm.setString(1, param);
             ResultSet res = stm.executeQuery();
             if (res.next()) {
                 return res.getString(1);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.log(Level.WARNING, "SQLException sql: " + sql, e);
         }
         return null;
     }

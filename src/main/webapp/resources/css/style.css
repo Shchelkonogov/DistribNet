@@ -6,6 +6,10 @@ body {
     height:100%
 }
 
+body .ui-widget {
+    font-size: 14px;
+}
+
 .ui-diagram-element {
     width:14em;
     height:4em;
@@ -125,14 +129,6 @@ span[class ^= 'right'] {
 .boolean-button-bar {
     margin-left: 10px !important;
     width: 80px;
-}
-
-.ui-button-icon-only .ui-icon.pi.pi-angle-left {
-    font-size: 2em;
-}
-
-.ui-button-icon-only .ui-icon.pi.pi-angle-right {
-    font-size: 2em;
 }
 
 .col1 {

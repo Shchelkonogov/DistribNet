@@ -6,12 +6,12 @@ import java.util.StringJoiner;
 
 public class Connector implements Serializable {
 
-    private String name;
+    private final String name;
     private String energy;
     private ConnectorValue temperature;
-    private ConnectorValue[] in = new ConnectorValue[3];
-    private ConnectorValue[] out = new ConnectorValue[3];
-    private ConnectorValue[] center = new ConnectorValue[5];
+    private final ConnectorValue[] in = new ConnectorValue[3];
+    private final ConnectorValue[] out = new ConnectorValue[3];
+    private final ConnectorValue[] center = new ConnectorValue[5];
     private int connectionAggregateId;
 
     public Connector(String name) {

@@ -6,7 +6,7 @@ import java.util.StringJoiner;
 
 public class DiagramElement implements Serializable {
 
-    private String name;
+    private final String name;
     private List<String> values;
     private List<String> sumValues;
     private String className;

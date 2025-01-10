@@ -6,10 +6,10 @@ import java.util.StringJoiner;
 
 public class Problem implements Serializable {
 
-    private String name;
-    private String color;
-    private boolean display;
-    private Integer problemId;
+    private final String name;
+    private final String color;
+    private final boolean display;
+    private final Integer problemId;
 
     public Problem(String name, String color, boolean display, Integer problemId) {
         this.name = name;

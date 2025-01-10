@@ -1,5 +1,11 @@
 package ru.tecon.dNet.mBean;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.ejb.EJB;
+import jakarta.faces.context.FacesContext;
+import jakarta.faces.event.AjaxBehaviorEvent;
+import jakarta.faces.view.ViewScoped;
+import jakarta.inject.Named;
 import org.primefaces.PrimeFaces;
 import org.primefaces.component.selectoneradio.SelectOneRadio;
 import org.primefaces.model.diagram.Connection;
@@ -17,34 +23,30 @@ import ru.tecon.dNet.model.*;
 import ru.tecon.dNet.sBean.GraphSBean;
 import ru.tecon.dNet.util.Graphs;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.EJB;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ViewScoped;
-import javax.faces.context.FacesContext;
-import javax.faces.event.AjaxBehaviorEvent;
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@ManagedBean(name = "graph")
+@Named("graph")
 @ViewScoped
 public class GraphMBean implements Serializable {
 
-    private static Logger log = Logger.getLogger(GraphMBean.class.getName());
+    private static final Logger log = Logger.getLogger(GraphMBean.class.getName());
 
     private String objectID;
 
     private int object;
+    private String sessionId;
     private LocalDate localDate;
-    private DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    private final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     private GraphElement producerData;
     private GraphElement init = null;
@@ -57,9 +59,9 @@ public class GraphMBean implements Serializable {
     private DefaultDiagramModel diagramModelRight;
 
     private StringBuilder styles = new StringBuilder();
-    private List<String> checkStyleList = new ArrayList<>();
+    private final List<String> checkStyleList = new ArrayList<>();
 
-    private List<Tooltip> tooltips = new ArrayList<>();
+    private final List<Tooltip> tooltips = new ArrayList<>();
 
     //Коэффициенты источника
     private ConnectorValue[] producerIndex;
@@ -77,13 +79,13 @@ public class GraphMBean implements Serializable {
     private String error;
 
     //Данные связанные с проблемами
-    private Map<String, Set<Problem>> problems = new HashMap<>();
-    private List<String> displayProblems = new ArrayList<>();
-    private Map<Integer, String> problemDesc = new HashMap<>();
+    private final Map<String, Set<Problem>> problems = new HashMap<>();
+    private final List<String> displayProblems = new ArrayList<>();
+    private final Map<Integer, String> problemDesc = new HashMap<>();
     private String selectProblemColor;
     private static final List<String> COMPARE_LIST = new ArrayList<>(Arrays.asList("ГВС", "ЦО"));
 
-    private List<Integer> consumersId = new ArrayList<>();
+    private final List<Integer> consumersId = new ArrayList<>();
 
     @EJB
     private GraphSBean bean;
@@ -98,7 +100,7 @@ public class GraphMBean implements Serializable {
 
         //Задаем тип соединителей
         StraightConnector connector = new StraightConnector();
-        connector.setPaintStyle("{strokeStyle:'#404a4e', lineWidth:3}");
+        connector.setPaintStyle("{stroke:'#404a4e', strokeWidth:3}");
         diagramModelLeft.setDefaultConnector(connector);
         diagramModelRight.setDefaultConnector(connector);
 
@@ -106,6 +108,7 @@ public class GraphMBean implements Serializable {
         if (producerData == null) {
             object = Integer.parseInt(FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("object"));
             String date = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("date");
+            sessionId = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("sessionId");
             localDate = LocalDate.parse(date, dtf);
 
             try {
@@ -155,9 +158,9 @@ public class GraphMBean implements Serializable {
             producer.getChildren().forEach(el -> el.getConnectors().removeIf(f -> f.getName().matches(Graphs.VENT + ".*")));
         }
 
-        //Убираем элементы из графа если нету связей
-        producer.getChildren().removeIf(consumer -> consumer.getConnectors().size() == 0);
-        if ((producer.getChildren().size() == 0) || (producer.getConnectors().size() == 0)) {
+        //Убираем элементы из графа если нет связей
+        producer.getChildren().removeIf(consumer -> consumer.getConnectors().isEmpty());
+        if ((producer.getChildren().isEmpty()) || (producer.getConnectors().isEmpty())) {
             log.info("init: Выберите систему для отображения!");
             error = "Выберите систему для отображения!";
             return;
@@ -223,7 +226,7 @@ public class GraphMBean implements Serializable {
         List<Integer> valuesDown = new ArrayList<>();
 
         connectDesc2.forEach(s -> {
-            if (s.equals("")) {
+            if (s.isEmpty()) {
                 valuesUp.add(0);
                 valuesDown.add(0);
             } else {
@@ -257,12 +260,12 @@ public class GraphMBean implements Serializable {
         prodLeft.addEndPoint(new BlankEndPoint(EndPointAnchor.CONTINUOUS_TOP));
         prodLeft.addEndPoint(new BlankEndPoint(EndPointAnchor.CONTINUOUS_TOP));
 
-        diagramModelLeft.connect(createConnection(initElement.getEndPoints().get(1),
-                prodLeft.getEndPoints().get(prodLeft.getEndPoints().size() - 2),
-                init.getConnectors().get(0).getIn(), false, true, getColor(Graphs.TC)));
         diagramModelLeft.connect(createConnection(initElement.getEndPoints().get(0),
                 prodLeft.getEndPoints().get(prodLeft.getEndPoints().size() - 1),
                 init.getConnectors().get(0).getOut(), true, true, getColor(Graphs.TC)));
+        diagramModelLeft.connect(createConnection(initElement.getEndPoints().get(1),
+                prodLeft.getEndPoints().get(prodLeft.getEndPoints().size() - 2),
+                init.getConnectors().get(0).getIn(), false, true, getColor(Graphs.TC)));
 
         //Созадем связку элемент соединитель элемент для потребителей
         int yPos = 10;
@@ -336,7 +339,10 @@ public class GraphMBean implements Serializable {
     }
 
     private void initConnections(Element left, Element right, GraphElement el, DefaultDiagramModel model, List<String> namesForGetColor) {
+        int maxIndex = el.getConnectors().size() - 1;
         for (int i = 0; i < el.getConnectors().size(); i++) {
+            int index = maxIndex - i;
+
             left.addEndPoint(new BlankEndPoint(EndPointAnchor.CONTINUOUS_RIGHT));
             left.addEndPoint(new BlankEndPoint(EndPointAnchor.CONTINUOUS_RIGHT));
             left.addEndPoint(new BlankEndPoint(EndPointAnchor.CONTINUOUS_RIGHT));
@@ -348,16 +354,16 @@ public class GraphMBean implements Serializable {
             model.connect(createConnection(
                     left.getEndPoints().get(3 * i),
                     right.getEndPoints().get(3 * i),
-                    el.getConnectors().get(i).getIn(), false, false, getColor(namesForGetColor.get(i))));
+                    el.getConnectors().get(index).getOut(), true, false, getColor(namesForGetColor.get(index))));
 
             model.connect(createConnection(
                     left.getEndPoints().get(3 * i + 1),
-                    right.getEndPoints().get(3 * i + 1), el.getConnectors().get(i).getCenter()));
+                    right.getEndPoints().get(3 * i + 1), el.getConnectors().get(index).getCenter()));
 
             model.connect(createConnection(
                     left.getEndPoints().get(3 * i + 2),
                     right.getEndPoints().get(3 * i + 2),
-                    el.getConnectors().get(i).getOut(), true, false, getColor(namesForGetColor.get(i))));
+                    el.getConnectors().get(index).getIn(), false, false, getColor(namesForGetColor.get(index))));
         }
     }
 
@@ -415,7 +421,7 @@ public class GraphMBean implements Serializable {
         Connection connect = new Connection(from, to);
 
         StraightConnector connector = new StraightConnector();
-        connector.setPaintStyle("{strokeStyle:'rgba(100, 100, 100, 0)', lineWidth:0}");
+        connector.setPaintStyle("{stroke:'rgba(100, 100, 100, 0)',strokeWidth:0}");
 
         connect.setConnector(connector);
 
@@ -464,7 +470,7 @@ public class GraphMBean implements Serializable {
         } else {
             connector = new StraightConnector();
         }
-        connector.setPaintStyle("{strokeStyle:'" + color + "', lineWidth:3}");
+        connector.setPaintStyle("{stroke:'" + color + "', strokeWidth:3}");
         conn.setConnector(connector);
 
         if (label != null) {
@@ -555,24 +561,28 @@ public class GraphMBean implements Serializable {
             id = String.valueOf(object);
         } else {
             try {
-                id = String.valueOf(consumersId.get(Integer.valueOf(objectID)));
+                id = String.valueOf(consumersId.get(Integer.parseInt(objectID)));
             } catch (NumberFormatException e) {
-                e.printStackTrace();
+                log.log(Level.WARNING, "Error load id when redirect", e);
             }
         }
 
         if (id != null) {
+            String url;
             switch (type) {
                 case "mnemo":
-                    PrimeFaces.current().executeScript("window.open('" + bean.getRedirectUrl(id) + "'), '_blank'");
+                    url = bean.getRedirectUrl("mnemo")
+                            .replace("[objectId]", id)
+                            .replace("[sessionId]", sessionId);
+                    PrimeFaces.current().executeScript("window.open('" + url + "'), '_blank'");
                     break;
                 case "vtp":
-                    try {
-                        PrimeFaces.current().executeScript("window.open('" + bean.getRedirectUrlTD() + "/techparams/archive/" + Integer.valueOf(id) +
-                                "?date=" + localDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy")) + "&aggregation=1&expanded=false'), '_blank'");
-                    } catch (NumberFormatException e) {
-                        log.warning("error objectID: " + id);
-                    }
+                    url = bean.getRedirectUrl("vtp_ta")
+                            .replace("[objectId]", id)
+                            .replace("[date]", localDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy")))
+                            .replace("[aggregation]", "1")
+                            .replace("[expanded]", "false");
+                    PrimeFaces.current().executeScript("window.open('" + url + "'), '_blank'");
                     break;
             }
         }
@@ -719,9 +729,9 @@ public class GraphMBean implements Serializable {
         localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         try {
             FacesContext.getCurrentInstance().getExternalContext()
-                    .redirect("index.xhtml?object=" + getObject() + "&date=" + localDate.format(dtf));
+                    .redirect("index.xhtml?object=" + getObject() + "&date=" + localDate.format(dtf) + "&sessionId=" + getSessionId());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.log(Level.WARNING, "Error redirect when change date", e);
         }
     }
 
@@ -753,5 +763,9 @@ public class GraphMBean implements Serializable {
 
     public String getSelectProblemColor() {
         return selectProblemColor;
+    }
+
+    public String getSessionId() {
+        return sessionId;
     }
 }

@@ -4,11 +4,11 @@ import java.util.StringJoiner;
 
 public class DataModel {
 
-    private String name;
-    private String value;
-    private int id;
-    private int statId;
-    private int colorIndex;
+    private final String name;
+    private final String value;
+    private final int id;
+    private final int statId;
+    private final int colorIndex;
 
     public DataModel(String name, String value, int id, int statId, int colorIndex) {
         this.name = name;

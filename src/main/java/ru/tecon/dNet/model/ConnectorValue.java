@@ -5,8 +5,8 @@ import java.util.StringJoiner;
 
 public class ConnectorValue implements Serializable {
 
-    private String value;
-    private String color;
+    private final String value;
+    private final String color;
 
     public ConnectorValue(String value, String color) {
         this.value = value;

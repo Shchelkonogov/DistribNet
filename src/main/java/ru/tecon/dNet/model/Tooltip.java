@@ -5,8 +5,8 @@ import java.util.StringJoiner;
 
 public class Tooltip implements Serializable {
 
-    private String id;
-    private String value;
+    private final String id;
+    private final String value;
 
     public Tooltip(String id, String value) {
         this.id = id;

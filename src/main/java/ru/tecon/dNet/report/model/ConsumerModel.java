@@ -4,8 +4,8 @@ import java.util.StringJoiner;
 
 public class ConsumerModel {
 
-    private String name;
-    private int id;
+    private final String name;
+    private final int id;
 
     public ConsumerModel(String name, int id) {
         this.name = name;
