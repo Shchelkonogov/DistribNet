@@ -111,18 +111,21 @@ public class ReportBean implements ReportBeanLocal {
     public CellValue getValue(int parentID, int object, int id, int statId, LocalDate startDate, LocalDate endDate) {
         try (Connection connection = ds.getConnection();
              CallableStatement cStm = connection.prepareCall(SELECT_VALUE)) {
-            cStm.setInt(1, parentID);
-            cStm.setInt(2, object);
-            cStm.setInt(3, id);
+            cStm.setLong(1, parentID);
+            cStm.setLong(2, object);
+            cStm.setLong(3, id);
             cStm.setInt(4, statId);
             cStm.setDate(5, Date.valueOf(startDate));
             cStm.setDate(6, Date.valueOf(endDate));
             cStm.registerOutParameter(7, Types.SMALLINT);
             cStm.registerOutParameter(8, Types.VARCHAR);
+
             cStm.executeUpdate();
 
             try {
-                return new CellValue(new BigDecimal(cStm.getString(1).trim()).setScale(2, RoundingMode.HALF_EVEN).toString(), cStm.getInt(8));
+                return new CellValue(new BigDecimal(cStm.getString(8).trim()).setScale(2, RoundingMode.HALF_EVEN).toString(), cStm.getShort(7));
+            } catch (NumberFormatException ignore) {
+                return new CellValue(cStm.getString(8).trim(), 0);
             } catch (Exception ignore) {
                 return new CellValue("", 0);
             }
