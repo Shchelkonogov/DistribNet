@@ -107,7 +107,7 @@ public class GraphElement implements Serializable {
 
             double energySum = getChildren().stream()
                     .mapToDouble(v -> v.getConnectors().stream()
-                            .filter(f -> (f.getConnectionAggregateId() == id) && (f.getEnergy() != null))
+                            .filter(f -> (f.getConnectionAggregateId() == id) && (f.getEnergy() != null) && (!f.getEnergy().isEmpty()))
                             .findFirst()
                             .map(connector -> new BigDecimal(connector.getEnergy()).doubleValue())
                             .orElse(0.0))
