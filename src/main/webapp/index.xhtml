@@ -45,6 +45,8 @@
         <style type="text/css">#{graph.styles}</style>
     </h:form>
 
+    <p:growl id="growl" showDetail="true" />
+
     <h:form>
         <p:remoteCommand name="setObjectIDJSF" action="#{graph.setObjectID}"/>
     </h:form>
@@ -238,6 +240,7 @@
         <p:contextMenu for="left:leftData">
             <p:menuitem value="Мнемосхема объекта" action="#{graph.redirect('mnemo')}"/>
             <p:menuitem value="Ведомость технологических параметров" action="#{graph.redirect('vtp')}"/>
+            <p:menuitem value="Единое окно диспетчера" action="#{graph.redirect('map')}"/>
         </p:contextMenu>
 
         <p:contextMenu for="right:rightData">

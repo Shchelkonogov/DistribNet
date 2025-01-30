@@ -80,6 +80,8 @@ public class GraphSBean {
             "(select obj_id from admin.obj_object where obj_name=?) limit 1";
     private static final String HOUSE_TYPE = "select val from admin.obj_type_prop_val_vie where obj_prop_name='Категория строения' and obj_id= " +
             "(select obj_id from admin.obj_object where obj_name=?) limit 1";
+    private static final String SELECT_ASOT_MUID = "select muid from asot.ots_heat_points " +
+            "where name = (select obj_name from admin.obj_object where obj_id = ?) limit 1";
 
     @Resource(name = "jdbc/DataSource")
     private DataSource ds;
@@ -389,6 +391,20 @@ public class GraphSBean {
             LOG.warning("getProblemDescription: error " + e.getMessage());
         }
         LOG.info("getProblemDescription: end");
+    }
+
+    public String getMuid(String id) {
+        try (Connection connect = ds.getConnection();
+             PreparedStatement stm = connect.prepareStatement(SELECT_ASOT_MUID)) {
+            stm.setInt(1, Integer.parseInt(id));
+            ResultSet res = stm.executeQuery();
+            if (res.next()) {
+                return res.getString(1);
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Error load asot muid by id: " + id, e);
+        }
+        return null;
     }
 
     /**

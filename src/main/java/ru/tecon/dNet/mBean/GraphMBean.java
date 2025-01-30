@@ -2,6 +2,7 @@ package ru.tecon.dNet.mBean;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.ejb.EJB;
+import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.event.AjaxBehaviorEvent;
 import jakarta.faces.view.ViewScoped;
@@ -584,6 +585,18 @@ public class GraphMBean implements Serializable {
                             .replace("[expanded]", "false");
                     PrimeFaces.current().executeScript("window.open('" + url + "'), '_blank'");
                     break;
+                case "map":
+                    if (bean.getMuid(id) != null) {
+                        url = bean.getRedirectUrl("eod_moek")
+                                .replace("[muid]", bean.getMuid(id));
+                        PrimeFaces.current().executeScript("window.open('" + url + "'), '_blank'");
+                    } else {
+                        FacesContext.getCurrentInstance()
+                                .addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Переход", "Идентификатор объекта не найден"));
+                        PrimeFaces.current().ajax().update("growl");
+                    }
+                    break;
+
             }
         }
     }

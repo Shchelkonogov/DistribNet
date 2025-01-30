@@ -154,3 +154,8 @@ span[class ^= 'right'] {
 .c2 {
     width: 80%;
 }
+
+body .ui-growl {
+    top: 10px;
+    right: 10px;
+}
